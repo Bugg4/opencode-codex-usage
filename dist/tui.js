@@ -86,6 +86,7 @@ const tui = async (api, options) => {
             }
             finally {
                 setLoading(false);
+                api.renderer.requestRender();
             }
         })().finally(() => {
             refreshing = undefined;

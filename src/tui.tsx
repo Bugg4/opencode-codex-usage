@@ -161,6 +161,7 @@ const tui = async (api: TuiPluginApi, options?: Options) => {
         })
       } finally {
         setLoading(false)
+        api.renderer.requestRender()
       }
     })().finally(() => {
       refreshing = undefined
