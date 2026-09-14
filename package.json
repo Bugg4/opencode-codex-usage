@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "opencode-codex-usage",
+  "version": "0.1.0",
+  "description": "OpenCode TUI sidebar plugin for ChatGPT Codex usage limits",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bugg4/opencode-codex-usage.git"
+  },
+  "homepage": "https://github.com/Bugg4/opencode-codex-usage#readme",
+  "bugs": {
+    "url": "https://github.com/Bugg4/opencode-codex-usage/issues"
+  },
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "codex",
+    "chatgpt",
+    "tui"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/tui.d.ts",
+      "import": "./dist/tui.js"
+    },
+    "./tui": {
+      "types": "./dist/tui.d.ts",
+      "import": "./dist/tui.js"
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run clean && npm run build && node --test test/*.test.js",
+    "prepack": "npm run clean && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=1.15.0 <2",
+    "@opentui/solid": ">=0.2.16 <1",
+    "solid-js": ">=1.9.12 <2"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "1.18.30",
+    "@opentui/solid": "0.5.11",
+    "@types/node": "^24.12.2",
+    "solid-js": "1.9.12",
+    "typescript": "^5.8.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
