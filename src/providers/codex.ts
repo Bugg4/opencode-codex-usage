@@ -1,5 +1,4 @@
-import { readFile } from "node:fs/promises"
-import path from "node:path"
+import { opencodeDataFile, booleanOrNull, numberOrNull, readJson, record, stringOrNull } from "../shared.js"
 
 export const USAGE_URL = "https://chatgpt.com/backend-api/wham/usage"
 
@@ -10,7 +9,7 @@ export type WindowUsage = {
   resetAt: number | null
 }
 
-export type Usage = {
+export type CodexUsage = {
   plan: string | null
   allowed: boolean | null
   limitReached: boolean | null
@@ -19,11 +18,14 @@ export type Usage = {
   error?: string
 }
 
-const record = (v: unknown): v is Record<string, unknown> =>
-  Boolean(v) && typeof v === "object" && !Array.isArray(v)
-const numberOrNull = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null)
-const stringOrNull = (v: unknown) => (typeof v === "string" && v.length > 0 ? v : null)
-const booleanOrNull = (v: unknown) => (typeof v === "boolean" ? v : null)
+export const emptyCodexUsage = (error: string): CodexUsage => ({
+  plan: null,
+  allowed: null,
+  limitReached: null,
+  primary: null,
+  secondary: null,
+  error,
+})
 
 export const accountIdFromToken = (token: string): string | undefined => {
   const payload = token.split(".")[1]
@@ -57,7 +59,7 @@ const parseWindow = (value: unknown): WindowUsage | null => {
   }
 }
 
-export const parseUsage = (value: unknown): Usage => {
+export const parseCodexUsage = (value: unknown): CodexUsage => {
   const data = record(value) ? value : {}
   const rateLimit = record(data.rate_limit) ? data.rate_limit : {}
   return {
@@ -77,10 +79,9 @@ const readAuth = async (): Promise<{ access?: string; accountId?: string }> => {
       accountId: stringOrNull(process.env.CHATGPT_ACCOUNT_ID) ?? accountIdFromToken(environmentToken),
     }
   }
-  const dataHome = process.env.XDG_DATA_HOME ?? path.join(process.env.HOME ?? "", ".local", "share")
-  const contents =
-    process.env.OPENCODE_AUTH_CONTENT ?? (await readFile(path.join(dataHome, "opencode", "auth.json"), "utf8"))
-  const data: unknown = JSON.parse(contents)
+  const data: unknown = process.env.OPENCODE_AUTH_CONTENT
+    ? JSON.parse(process.env.OPENCODE_AUTH_CONTENT)
+    : await readJson(opencodeDataFile("auth.json"))
   const openai = record(data) && record(data.openai) ? data.openai : {}
   const access = stringOrNull(openai.access)
   return {
@@ -89,7 +90,7 @@ const readAuth = async (): Promise<{ access?: string; accountId?: string }> => {
   }
 }
 
-export const getUsage = async (): Promise<Usage> => {
+export const getCodexUsage = async (): Promise<CodexUsage> => {
   const auth = await readAuth()
   if (!auth.access) throw new Error("Connect ChatGPT from /connect first")
   const headers = new Headers({ Authorization: `Bearer ${auth.access}`, Accept: "application/json" })
@@ -99,5 +100,5 @@ export const getUsage = async (): Promise<Usage> => {
     throw new Error("ChatGPT session expired; reconnect from /connect")
   }
   if (!response.ok) throw new Error(`Usage request failed (${response.status})`)
-  return parseUsage(await response.json())
+  return parseCodexUsage(await response.json())
 }

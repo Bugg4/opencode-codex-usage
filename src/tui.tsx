@@ -1,167 +1,87 @@
 /** @jsxImportSource @opentui/solid */
 import type { TuiPluginApi } from "@opencode-ai/plugin/tui"
-import { createSignal, Show } from "solid-js"
-import { getUsage, type Usage, type WindowUsage } from "./usage.js"
+import type { Plugin as V2Plugin } from "@opencode/plugin/tui"
+import { createSignal, type Accessor, type JSX } from "solid-js"
 import { parseRefreshInterval } from "./refresh.js"
+import { parseProviders, type ProviderId } from "./options.js"
+import { errorMessage, record } from "./shared.js"
+import type { UsageTheme, UsageViewProps } from "./ui.js"
+import { CodexView } from "./providers/codex-view.js"
+import { emptyCodexUsage, getCodexUsage } from "./providers/codex.js"
+import { GoView } from "./providers/opencode-go-view.js"
+import { emptyGoUsage, getGoUsage } from "./providers/opencode-go.js"
+import { CommandCodeView } from "./providers/commandcode-view.js"
+import { emptyCommandCodeUsage, getCommandCodeUsage } from "./providers/commandcode.js"
 
-const pct = (v: number | null) => (v === null ? "--%" : `${Math.round(v)}%`)
+type UsageResult = { error?: string }
 
-function windowLabel(w: WindowUsage, fallback: string): string {
-  if (w.windowSeconds === null) return fallback
-  const hours = Math.round(w.windowSeconds / 3600)
-  if (hours >= 24) return `${Math.round(hours / 24)}d window`
-  return `${Math.max(1, hours)}h window`
+type Provider<Usage extends UsageResult> = {
+  id: ProviderId
+  defaultRefreshInterval: string
+  getUsage: () => Promise<Usage>
+  errorUsage: (message: string) => Usage
+  View: (props: UsageViewProps<Usage>) => JSX.Element
 }
 
-function resetLabel(ts: number | null): string {
-  if (ts === null) return "reset unknown"
-  const d = new Date(ts * 1000)
-  return `resets ${d.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+type Runtime = {
+  render: () => JSX.Element
+  dispose: () => void
 }
 
-function View(props: { api: TuiPluginApi; usage: () => Usage | null; loading: () => boolean }) {
-  const [open, setOpen] = createSignal(true)
-  const theme = () => props.api.theme.current
-  const u = () => props.usage()
-
-  const shortSummary = () => {
-    const value = u()
-    if (!value && props.loading()) return "(loading)"
-    if (!value || value.error) return "(unavailable)"
-    // ponytail: primary is the shortest window; secondary is the fallback
-    if (value.primary?.remainingPercent !== null && value.primary?.remainingPercent !== undefined) {
-      return `(5h ${pct(value.primary.remainingPercent)} left)`
-    }
-    if (value.secondary) return `(${windowLabel(value.secondary, "wk")} ${pct(value.secondary.remainingPercent)} left)`
-    return "(unavailable)"
-  }
-
-  const summary = () => {
-    const value = u()
-    if (!value && props.loading()) return "(loading)"
-    if (!value) return "(unavailable)"
-    if (value.error) return "(unavailable)"
-    const plan = value.plan ?? "?"
-    const left = value.primary ? pct(value.primary.remainingPercent) : "--%"
-    return `(${plan} · ${left} left)`
-  }
-
-  const Empty = () => (
-    <box flexDirection="row" gap={1}>
-      <text flexShrink={0} fg={theme().textMuted}>
-        •
-      </text>
-      <text fg={theme().textMuted}>(unavailable)</text>
-    </box>
-  )
-
-  const statusColor = () => {
-    const value = u()
-    return value?.allowed === false || value?.limitReached === true ? theme().error : theme().success
-  }
-
-  const statusText = () => {
-    const value = u()!
-    const base =
-      value.allowed === true ? "Allowed" : value.allowed === false ? "Not allowed" : "Allowed unknown"
-    return value.limitReached === true ? `${base} · limit reached` : base
-  }
-
-  const WindowRow = (p: { label: string; win: WindowUsage }) => (
-    <box flexDirection="row" gap={1}>
-      <text flexShrink={0} fg={theme().textMuted}>
-        •
-      </text>
-      <text fg={theme().text} wrapMode="word">
-        {windowLabel(p.win, p.label)}:{" "}
-        <span style={{ fg: theme().primary }}>{pct(p.win.remainingPercent)} left</span>
-        <Show when={p.win.usedPercent !== null}>
-          {" "}
-          <span style={{ fg: theme().textMuted }}>({pct(p.win.usedPercent)} used)</span>
-        </Show>
-        <Show when={p.win.resetAt !== null}>
-          <span style={{ fg: theme().textMuted }}> · {resetLabel(p.win.resetAt)}</span>
-        </Show>
-      </text>
-    </box>
-  )
-
-  return (
-    <box>
-      <box flexDirection="row" gap={1} onMouseDown={() => setOpen((x) => !x)}>
-        <text fg={theme().text}>{open() ? "▼" : "▶"}</text>
-        <text fg={theme().text}>
-          <b>Codex usage</b>
-          <Show when={!open()}>
-            <span style={{ fg: theme().textMuted }}>{" "}{shortSummary()}</span>
-          </Show>
-        </text>
-      </box>
-      <Show when={open()}>
-        <Show
-          when={u()}
-          fallback={
-            <text fg={theme().textMuted}>
-              {props.loading() ? "Loading usage..." : "Usage unavailable"}
-            </text>
-          }
-        >
-          {(value) => (
-            <box flexDirection="column">
-              <Show when={!value().error} fallback={<Empty />}>
-                <box flexDirection="row" gap={1}>
-                  <text flexShrink={0} fg={theme().textMuted}>
-                    •
-                  </text>
-                  <text fg={theme().text}>
-                    Plan: <b>{value().plan ?? "unknown"}</b> ·{" "}
-                    <span style={{ fg: statusColor() }}>{statusText()}</span>
-                  </text>
-                </box>
-                <Show when={value().primary ?? value().secondary} fallback={<Empty />}>
-                  <Show when={value().primary}>
-                    {(win) => <WindowRow label="Primary window" win={win()} />}
-                  </Show>
-                  <Show when={value().secondary}>
-                    {(win) => <WindowRow label="Secondary window" win={win()} />}
-                  </Show>
-                </Show>
-              </Show>
-            </box>
-          )}
-        </Show>
-      </Show>
-    </box>
-  )
+const providers = {
+  codex: {
+    id: "codex",
+    defaultRefreshInterval: "30s",
+    getUsage: getCodexUsage,
+    errorUsage: emptyCodexUsage,
+    View: CodexView,
+  } satisfies Provider<Awaited<ReturnType<typeof getCodexUsage>>>,
+  "opencode-go": {
+    id: "opencode-go",
+    defaultRefreshInterval: "5m",
+    getUsage: getGoUsage,
+    errorUsage: emptyGoUsage,
+    View: GoView,
+  } satisfies Provider<Awaited<ReturnType<typeof getGoUsage>>>,
+  commandcode: {
+    id: "commandcode",
+    defaultRefreshInterval: "5m",
+    getUsage: getCommandCodeUsage,
+    errorUsage: emptyCommandCodeUsage,
+    View: CommandCodeView,
+  } satisfies Provider<Awaited<ReturnType<typeof getCommandCodeUsage>>>,
 }
 
-type Options = { refreshInterval?: string }
-
-const tui = async (api: TuiPluginApi, options?: Options) => {
-  let timer: ReturnType<typeof setInterval> | undefined
-  let refreshing: Promise<void> | undefined
-  const refreshInterval = parseRefreshInterval(options?.refreshInterval ?? "30s")
+const createRuntime = <Usage extends UsageResult>(
+  provider: Provider<Usage>,
+  refreshInterval: unknown,
+  theme: Accessor<UsageTheme>,
+  requestRender: () => void,
+): Runtime => {
+  const interval = parseRefreshInterval(refreshInterval, parseRefreshInterval(provider.defaultRefreshInterval).milliseconds)
   const [usage, setUsage] = createSignal<Usage | null>(null)
   const [loading, setLoading] = createSignal(true)
+  const [open, setOpen] = createSignal(true)
+  let refreshing: Promise<void> | undefined
 
-  const refresh = () => {
+  const toggleOpen = () => {
+    setOpen((value) => !value)
+    requestRender()
+  }
+
+  const refresh = (): Promise<void> => {
     if (refreshing) return refreshing
     refreshing = (async () => {
       setLoading(true)
       try {
-        setUsage(await getUsage())
+        const next = await provider.getUsage()
+        setUsage(() => next)
       } catch (error) {
-        setUsage({
-          plan: null,
-          allowed: null,
-          limitReached: null,
-          primary: null,
-          secondary: null,
-          error: error instanceof Error ? error.message : "Usage request failed",
-        })
+        const next = provider.errorUsage(errorMessage(error))
+        setUsage(() => next)
       } finally {
         setLoading(false)
-        api.renderer.requestRender()
+        requestRender()
       }
     })().finally(() => {
       refreshing = undefined
@@ -169,23 +89,87 @@ const tui = async (api: TuiPluginApi, options?: Options) => {
     return refreshing
   }
 
-  api.slots.register({
-    order: 150,
-    slots: {
-      sidebar_content() {
-        return <View api={api} usage={usage} loading={loading} />
-      },
-    },
-  })
-
   void refresh()
-  timer = setInterval(() => void refresh(), refreshInterval.milliseconds)
-  api.lifecycle.onDispose(() => {
-    if (timer) clearInterval(timer)
-  })
+  const timer = setInterval(() => void refresh(), interval.milliseconds)
+  return {
+    render: () => (
+      <provider.View
+        usage={usage}
+        loading={loading}
+        theme={theme}
+        open={open}
+        toggleOpen={toggleOpen}
+      />
+    ),
+    dispose: () => clearInterval(timer),
+  }
 }
 
-export default {
-  id: "codex-usage-collapsible",
-  tui,
+const mount = (
+  rawOptions: unknown,
+  theme: Accessor<UsageTheme>,
+  requestRender: () => void,
+  register: (render: () => JSX.Element) => () => void,
+): (() => void) => {
+  const options = record(rawOptions) ? rawOptions : {}
+  const enabled = parseProviders(options.providers)
+  const runtimes: Runtime[] = []
+  for (const id of enabled) {
+    if (id === "codex") runtimes.push(createRuntime(providers.codex, options.refreshInterval, theme, requestRender))
+    if (id === "opencode-go") runtimes.push(createRuntime(providers["opencode-go"], options.refreshInterval, theme, requestRender))
+    if (id === "commandcode") runtimes.push(createRuntime(providers.commandcode, options.refreshInterval, theme, requestRender))
+  }
+
+  const unregister = register(() => (
+    <box flexDirection="column">
+      {runtimes.length > 0
+        ? runtimes.map((runtime) => runtime.render())
+        : <text fg={theme().warning}>Enable usage providers in the opencode-multi-usage plugin config.</text>}
+    </box>
+  ))
+  return () => {
+    for (const runtime of runtimes) runtime.dispose()
+    unregister()
+  }
 }
+
+export const legacyTui = async (api: TuiPluginApi, options?: unknown): Promise<void> => {
+  const dispose = mount(
+    options,
+    () => ({
+      text: api.theme.current.text,
+      muted: api.theme.current.textMuted,
+      primary: api.theme.current.primary,
+      error: api.theme.current.error,
+      warning: api.theme.current.warning,
+      success: api.theme.current.success,
+    }),
+    () => api.renderer.requestRender(),
+    (render) => {
+      api.slots.register({ order: 150, slots: { sidebar_content: render } })
+      return () => {}
+    },
+  )
+  api.lifecycle.onDispose(dispose)
+}
+
+const plugin = {
+  id: "opencode.multi-usage.tui",
+  setup(context: V2Plugin.Context) {
+    return mount(
+      context.options,
+      () => ({
+        text: context.theme.text.default,
+        muted: context.theme.text.subdued,
+        primary: context.theme.text.action.primary.default,
+        error: context.theme.text.feedback.error.default,
+        warning: context.theme.text.feedback.warning.default,
+        success: context.theme.text.feedback.success.default,
+      }),
+      () => context.renderer.requestRender(),
+      (render) => context.ui.slot({ append: "sidebar.content", render }),
+    )
+  },
+} satisfies V2Plugin.Definition
+
+export default plugin

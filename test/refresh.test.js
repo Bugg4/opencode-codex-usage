@@ -14,8 +14,12 @@ describe("parseRefreshInterval", () => {
     assert.equal(parseRefreshInterval("5s").milliseconds, 10_000)
   })
 
-  it("falls back to 30s on invalid input", () => {
-    assert.equal(parseRefreshInterval("soon").milliseconds, 30_000)
-    assert.equal(parseRefreshInterval(undefined).milliseconds, 30_000)
+  it("falls back to 5m on invalid input", () => {
+    assert.equal(parseRefreshInterval("soon").milliseconds, 300_000)
+    assert.equal(parseRefreshInterval(undefined).milliseconds, 300_000)
+  })
+
+  it("accepts a provider-specific fallback", () => {
+    assert.equal(parseRefreshInterval(undefined, 30_000).milliseconds, 30_000)
   })
 })

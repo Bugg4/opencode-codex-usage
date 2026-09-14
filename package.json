@@ -1,23 +1,26 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "opencode-codex-usage",
+  "name": "opencode-multi-usage",
   "version": "0.1.0",
-  "description": "OpenCode TUI sidebar plugin for ChatGPT Codex usage limits",
+  "description": "OpenCode sidebar plugin for Codex, OpenCode Go, and CommandCode usage",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Bugg4/opencode-codex-usage.git"
+    "url": "https://github.com/Bugg4/opencode-multi-usage.git"
   },
-  "homepage": "https://github.com/Bugg4/opencode-codex-usage#readme",
+  "homepage": "https://github.com/Bugg4/opencode-multi-usage#readme",
   "bugs": {
-    "url": "https://github.com/Bugg4/opencode-codex-usage/issues"
+    "url": "https://github.com/Bugg4/opencode-multi-usage/issues"
   },
   "type": "module",
   "license": "MIT",
   "keywords": [
     "opencode",
     "opencode-plugin",
+    "usage",
     "codex",
     "chatgpt",
+    "opencode-go",
+    "commandcode",
     "tui"
   ],
   "files": [
@@ -27,8 +30,8 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/tui.d.ts",
-      "import": "./dist/tui.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./tui": {
       "types": "./dist/tui.d.ts",
@@ -37,22 +40,40 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
+    "build": "npm run clean && tsc -p tsconfig.json --emitDeclarationOnly && tsup",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run clean && tsc -p tsconfig.json && node --test test/*.test.js"
+    "test": "npm run build && node --test test/*.test.js"
   },
   "engines": {
     "node": ">=22"
   },
   "peerDependencies": {
-    "@opencode-ai/plugin": ">=1.15.0 <2",
+    "@opencode-ai/plugin": ">=1.18.29 <2",
+    "@opencode/plugin": ">=2 <3",
+    "@opencode/theme": ">=2 <3",
     "@opentui/solid": ">=0.2.16 <1",
     "solid-js": ">=1.9.12 <2"
   },
+  "peerDependenciesMeta": {
+    "@opencode-ai/plugin": {
+      "optional": true
+    },
+    "@opencode/plugin": {
+      "optional": true
+    },
+    "@opencode/theme": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@opencode-ai/plugin": "1.18.30",
+    "@opencode/plugin": "^2.0.3",
+    "@opencode/theme": "^2.0.3",
     "@opentui/solid": "0.5.11",
     "@types/node": "^24.12.2",
+    "esbuild-plugin-solid": "^0.6.0",
     "solid-js": "1.9.12",
+    "tsup": "^8.5.1",
     "typescript": "^5.8.2"
   },
   "publishConfig": {

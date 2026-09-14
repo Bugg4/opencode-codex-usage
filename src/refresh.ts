@@ -1,4 +1,4 @@
-const DEFAULT_REFRESH_INTERVAL_MS = 30_000
+export const DEFAULT_REFRESH_INTERVAL_MS = 300_000
 const MIN_REFRESH_INTERVAL_MS = 10_000
 const MAX_REFRESH_INTERVAL_MS = 2_147_483_647
 
@@ -22,7 +22,10 @@ const formatInterval = (milliseconds: number): string => {
   return `${milliseconds / UNIT_MILLISECONDS.s!}s`
 }
 
-export const parseRefreshInterval = (value: unknown): { milliseconds: number; label: string } => {
+export const parseRefreshInterval = (
+  value: unknown,
+  fallback = DEFAULT_REFRESH_INTERVAL_MS,
+): { milliseconds: number; label: string } => {
   const match = typeof value === "string" ? /^\s*(\d+)\s*([smhd])\s*$/i.exec(value) : null
   const amount = match ? Number(match[1]) : Number.NaN
   const unit = match?.[2]?.toLowerCase()
@@ -30,6 +33,6 @@ export const parseRefreshInterval = (value: unknown): { milliseconds: number; la
   const milliseconds =
     Number.isSafeInteger(parsed) && parsed <= MAX_REFRESH_INTERVAL_MS
       ? Math.max(MIN_REFRESH_INTERVAL_MS, parsed)
-      : DEFAULT_REFRESH_INTERVAL_MS
+      : fallback
   return { milliseconds, label: formatInterval(milliseconds) }
 }

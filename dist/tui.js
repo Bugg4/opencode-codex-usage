@@ -1,115 +1,153 @@
-import { jsx as _jsx, jsxs as _jsxs } from "@opentui/solid/jsx-runtime";
-import { createSignal, Show } from "solid-js";
-import { getUsage } from "./usage.js";
+import { effect as _$effect } from "@opentui/solid";
+import { createTextNode as _$createTextNode } from "@opentui/solid";
+import { insertNode as _$insertNode } from "@opentui/solid";
+import { insert as _$insert } from "@opentui/solid";
+import { memo as _$memo } from "@opentui/solid";
+import { setProp as _$setProp } from "@opentui/solid";
+import { createElement as _$createElement } from "@opentui/solid";
+import { createComponent as _$createComponent } from "@opentui/solid";
+import { createSignal } from "solid-js";
 import { parseRefreshInterval } from "./refresh.js";
-const pct = (v) => (v === null ? "--%" : `${Math.round(v)}%`);
-function windowLabel(w, fallback) {
-    if (w.windowSeconds === null)
-        return fallback;
-    const hours = Math.round(w.windowSeconds / 3600);
-    if (hours >= 24)
-        return `${Math.round(hours / 24)}d window`;
-    return `${Math.max(1, hours)}h window`;
-}
-function resetLabel(ts) {
-    if (ts === null)
-        return "reset unknown";
-    const d = new Date(ts * 1000);
-    return `resets ${d.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`;
-}
-function View(props) {
-    const [open, setOpen] = createSignal(true);
-    const theme = () => props.api.theme.current;
-    const u = () => props.usage();
-    const shortSummary = () => {
-        const value = u();
-        if (!value && props.loading())
-            return "(loading)";
-        if (!value || value.error)
-            return "(unavailable)";
-        // ponytail: primary is the shortest window; secondary is the fallback
-        if (value.primary?.remainingPercent !== null && value.primary?.remainingPercent !== undefined) {
-            return `(5h ${pct(value.primary.remainingPercent)} left)`;
-        }
-        if (value.secondary)
-            return `(${windowLabel(value.secondary, "wk")} ${pct(value.secondary.remainingPercent)} left)`;
-        return "(unavailable)";
-    };
-    const summary = () => {
-        const value = u();
-        if (!value && props.loading())
-            return "(loading)";
-        if (!value)
-            return "(unavailable)";
-        if (value.error)
-            return "(unavailable)";
-        const plan = value.plan ?? "?";
-        const left = value.primary ? pct(value.primary.remainingPercent) : "--%";
-        return `(${plan} · ${left} left)`;
-    };
-    const Empty = () => (_jsxs("box", { flexDirection: "row", gap: 1, children: [_jsx("text", { flexShrink: 0, fg: theme().textMuted, children: "\u2022" }), _jsx("text", { fg: theme().textMuted, children: "(unavailable)" })] }));
-    const statusColor = () => {
-        const value = u();
-        return value?.allowed === false || value?.limitReached === true ? theme().error : theme().success;
-    };
-    const statusText = () => {
-        const value = u();
-        const base = value.allowed === true ? "Allowed" : value.allowed === false ? "Not allowed" : "Allowed unknown";
-        return value.limitReached === true ? `${base} · limit reached` : base;
-    };
-    const WindowRow = (p) => (_jsxs("box", { flexDirection: "row", gap: 1, children: [_jsx("text", { flexShrink: 0, fg: theme().textMuted, children: "\u2022" }), _jsxs("text", { fg: theme().text, wrapMode: "word", children: [windowLabel(p.win, p.label), ":", " ", _jsxs("span", { style: { fg: theme().primary }, children: [pct(p.win.remainingPercent), " left"] }), _jsxs(Show, { when: p.win.usedPercent !== null, children: [" ", _jsxs("span", { style: { fg: theme().textMuted }, children: ["(", pct(p.win.usedPercent), " used)"] })] }), _jsx(Show, { when: p.win.resetAt !== null, children: _jsxs("span", { style: { fg: theme().textMuted }, children: [" \u00B7 ", resetLabel(p.win.resetAt)] }) })] })] }));
-    return (_jsxs("box", { children: [_jsxs("box", { flexDirection: "row", gap: 1, onMouseDown: () => setOpen((x) => !x), children: [_jsx("text", { fg: theme().text, children: open() ? "▼" : "▶" }), _jsxs("text", { fg: theme().text, children: [_jsx("b", { children: "Codex usage" }), _jsx(Show, { when: !open(), children: _jsxs("span", { style: { fg: theme().textMuted }, children: [" ", shortSummary()] }) })] })] }), _jsx(Show, { when: open(), children: _jsx(Show, { when: u(), fallback: _jsx("text", { fg: theme().textMuted, children: props.loading() ? "Loading usage..." : "Usage unavailable" }), children: (value) => (_jsx("box", { flexDirection: "column", children: _jsxs(Show, { when: !value().error, fallback: _jsx(Empty, {}), children: [_jsxs("box", { flexDirection: "row", gap: 1, children: [_jsx("text", { flexShrink: 0, fg: theme().textMuted, children: "\u2022" }), _jsxs("text", { fg: theme().text, children: ["Plan: ", _jsx("b", { children: value().plan ?? "unknown" }), " \u00B7", " ", _jsx("span", { style: { fg: statusColor() }, children: statusText() })] })] }), _jsxs(Show, { when: value().primary ?? value().secondary, fallback: _jsx(Empty, {}), children: [_jsx(Show, { when: value().primary, children: (win) => _jsx(WindowRow, { label: "Primary window", win: win() }) }), _jsx(Show, { when: value().secondary, children: (win) => _jsx(WindowRow, { label: "Secondary window", win: win() }) })] })] }) })) }) })] }));
-}
-const tui = async (api, options) => {
-    let timer;
-    let refreshing;
-    const refreshInterval = parseRefreshInterval(options?.refreshInterval ?? "30s");
-    const [usage, setUsage] = createSignal(null);
-    const [loading, setLoading] = createSignal(true);
-    const refresh = () => {
-        if (refreshing)
-            return refreshing;
-        refreshing = (async () => {
-            setLoading(true);
-            try {
-                setUsage(await getUsage());
-            }
-            catch (error) {
-                setUsage({
-                    plan: null,
-                    allowed: null,
-                    limitReached: null,
-                    primary: null,
-                    secondary: null,
-                    error: error instanceof Error ? error.message : "Usage request failed",
-                });
-            }
-            finally {
-                setLoading(false);
-                api.renderer.requestRender();
-            }
-        })().finally(() => {
-            refreshing = undefined;
-        });
-        return refreshing;
-    };
-    api.slots.register({
-        order: 150,
-        slots: {
-            sidebar_content() {
-                return _jsx(View, { api: api, usage: usage, loading: loading });
-            },
-        },
-    });
-    void refresh();
-    timer = setInterval(() => void refresh(), refreshInterval.milliseconds);
-    api.lifecycle.onDispose(() => {
-        if (timer)
-            clearInterval(timer);
-    });
+import { parseProviders } from "./options.js";
+import { errorMessage, record } from "./shared.js";
+import { CodexView } from "./providers/codex-view.js";
+import { emptyCodexUsage, getCodexUsage } from "./providers/codex.js";
+import { GoView } from "./providers/opencode-go-view.js";
+import { emptyGoUsage, getGoUsage } from "./providers/opencode-go.js";
+import { CommandCodeView } from "./providers/commandcode-view.js";
+import { emptyCommandCodeUsage, getCommandCodeUsage } from "./providers/commandcode.js";
+const providers = {
+  codex: {
+    id: "codex",
+    defaultRefreshInterval: "30s",
+    getUsage: getCodexUsage,
+    errorUsage: emptyCodexUsage,
+    View: CodexView
+  },
+  "opencode-go": {
+    id: "opencode-go",
+    defaultRefreshInterval: "5m",
+    getUsage: getGoUsage,
+    errorUsage: emptyGoUsage,
+    View: GoView
+  },
+  commandcode: {
+    id: "commandcode",
+    defaultRefreshInterval: "5m",
+    getUsage: getCommandCodeUsage,
+    errorUsage: emptyCommandCodeUsage,
+    View: CommandCodeView
+  }
 };
-export default {
-    id: "codex-usage-collapsible",
-    tui,
+const createRuntime = (provider, refreshInterval, theme, requestRender) => {
+  const interval = parseRefreshInterval(refreshInterval, parseRefreshInterval(provider.defaultRefreshInterval).milliseconds);
+  const [usage, setUsage] = createSignal(null);
+  const [loading, setLoading] = createSignal(true);
+  const [open, setOpen] = createSignal(true);
+  let refreshing;
+  const toggleOpen = () => {
+    setOpen((value) => !value);
+    requestRender();
+  };
+  const refresh = () => {
+    if (refreshing) return refreshing;
+    refreshing = (async () => {
+      setLoading(true);
+      try {
+        const next = await provider.getUsage();
+        setUsage(() => next);
+      } catch (error) {
+        const next = provider.errorUsage(errorMessage(error));
+        setUsage(() => next);
+      } finally {
+        setLoading(false);
+        requestRender();
+      }
+    })().finally(() => {
+      refreshing = void 0;
+    });
+    return refreshing;
+  };
+  void refresh();
+  const timer = setInterval(() => void refresh(), interval.milliseconds);
+  return {
+    render: () => _$createComponent(provider.View, {
+      usage,
+      loading,
+      theme,
+      open,
+      toggleOpen
+    }),
+    dispose: () => clearInterval(timer)
+  };
+};
+const mount = (rawOptions, theme, requestRender, register) => {
+  const options = record(rawOptions) ? rawOptions : {};
+  const enabled = parseProviders(options.providers);
+  const runtimes = [];
+  for (const id of enabled) {
+    if (id === "codex") runtimes.push(createRuntime(providers.codex, options.refreshInterval, theme, requestRender));
+    if (id === "opencode-go") runtimes.push(createRuntime(providers["opencode-go"], options.refreshInterval, theme, requestRender));
+    if (id === "commandcode") runtimes.push(createRuntime(providers.commandcode, options.refreshInterval, theme, requestRender));
+  }
+  const unregister = register(() => (() => {
+    var _el$ = _$createElement("box");
+    _$setProp(_el$, "flexDirection", "column");
+    _$insert(_el$, (() => {
+      var _c$ = _$memo(() => runtimes.length > 0);
+      return () => _c$() ? runtimes.map((runtime) => runtime.render()) : (() => {
+        var _el$2 = _$createElement("text");
+        _$insertNode(_el$2, _$createTextNode(`Enable usage providers in the opencode-multi-usage plugin config.`));
+        _$effect((_$p) => _$setProp(_el$2, "fg", theme().warning, _$p));
+        return _el$2;
+      })();
+    })());
+    return _el$;
+  })());
+  return () => {
+    for (const runtime of runtimes) runtime.dispose();
+    unregister();
+  };
+};
+const legacyTui = async (api, options) => {
+  const dispose = mount(options, () => ({
+    text: api.theme.current.text,
+    muted: api.theme.current.textMuted,
+    primary: api.theme.current.primary,
+    error: api.theme.current.error,
+    warning: api.theme.current.warning,
+    success: api.theme.current.success
+  }), () => api.renderer.requestRender(), (render) => {
+    api.slots.register({
+      order: 150,
+      slots: {
+        sidebar_content: render
+      }
+    });
+    return () => {
+    };
+  });
+  api.lifecycle.onDispose(dispose);
+};
+const plugin = {
+  id: "opencode.multi-usage.tui",
+  setup(context) {
+    return mount(context.options, () => ({
+      text: context.theme.text.default,
+      muted: context.theme.text.subdued,
+      primary: context.theme.text.action.primary.default,
+      error: context.theme.text.feedback.error.default,
+      warning: context.theme.text.feedback.warning.default,
+      success: context.theme.text.feedback.success.default
+    }), () => context.renderer.requestRender(), (render) => context.ui.slot({
+      append: "sidebar.content",
+      render
+    }));
+  }
+};
+var tui_default = plugin;
+export {
+  tui_default as default,
+  legacyTui
 };
 //# sourceMappingURL=tui.js.map

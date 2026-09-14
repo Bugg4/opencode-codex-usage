@@ -5,7 +5,7 @@ export type WindowUsage = {
     windowSeconds: number | null;
     resetAt: number | null;
 };
-export type Usage = {
+export type CodexUsage = {
     plan: string | null;
     allowed: boolean | null;
     limitReached: boolean | null;
@@ -13,7 +13,8 @@ export type Usage = {
     secondary: WindowUsage | null;
     error?: string;
 };
+export declare const emptyCodexUsage: (error: string) => CodexUsage;
 export declare const accountIdFromToken: (token: string) => string | undefined;
-export declare const parseUsage: (value: unknown) => Usage;
-export declare const getUsage: () => Promise<Usage>;
-//# sourceMappingURL=usage.d.ts.map
+export declare const parseCodexUsage: (value: unknown) => CodexUsage;
+export declare const getCodexUsage: () => Promise<CodexUsage>;
+//# sourceMappingURL=codex.d.ts.map

@@ -1,0 +1,207 @@
+import { setProp as _$setProp } from "@opentui/solid";
+import { effect as _$effect } from "@opentui/solid";
+import { createTextNode as _$createTextNode } from "@opentui/solid";
+import { insertNode as _$insertNode } from "@opentui/solid";
+import { insert as _$insert } from "@opentui/solid";
+import { createElement as _$createElement } from "@opentui/solid";
+import { createComponent as _$createComponent } from "@opentui/solid";
+import { memo as _$memo } from "@opentui/solid";
+import { Show } from "solid-js";
+import { Empty, pct, PlanRow, QuotaRow, Row, Section } from "../ui.js";
+const money = (value) => value === null ? "--" : `$${value.toFixed(2)}`;
+const windowPct = (window) => window.used === null || window.cap === null || window.cap <= 0 ? null : Math.min(100, window.used / window.cap * 100);
+const resetLabel = (timestamp, now) => {
+  if (timestamp === null || timestamp <= now) return "reset unknown";
+  const minutes = Math.max(1, Math.ceil((timestamp - now) / 6e4));
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor(minutes % 1440 / 60);
+  const remainder = minutes % 60;
+  const relative = days > 0 ? hours > 0 ? `${days}d ${hours}h` : `${days}d` : hours > 0 ? `${hours}h ${remainder}m` : `${remainder}m`;
+  const date = new Date(timestamp);
+  return `resets in ${relative} (${date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  })})`;
+};
+const blankWindow = {
+  used: null,
+  cap: null,
+  resetAt: null
+};
+function CommandCodeView(props) {
+  const shortSummary = () => {
+    const usage = props.usage();
+    if (!usage && props.loading()) return "(loading)";
+    if (!usage || usage.error) return "(unavailable)";
+    const fiveHour = windowPct(usage.fiveHour ?? blankWindow);
+    if (fiveHour !== null) return `(5h ${pct(100 - fiveHour)} left)`;
+    const weekly = windowPct(usage.weekly ?? blankWindow);
+    return weekly === null ? "(unavailable)" : `(1w ${pct(100 - weekly)} left)`;
+  };
+  const WindowRow = (row) => {
+    const used = () => windowPct(row.window);
+    return _$createComponent(QuotaRow, {
+      get label() {
+        return row.label;
+      },
+      get remainingPercent() {
+        return _$memo(() => used() === null)() ? null : 100 - used();
+      },
+      get usedPercent() {
+        return used();
+      },
+      get reset() {
+        return resetLabel(row.window.resetAt, Date.now());
+      },
+      get theme() {
+        return props.theme;
+      }
+    });
+  };
+  return _$createComponent(Section, {
+    title: "CommandCode usage",
+    shortSummary,
+    get loading() {
+      return props.loading;
+    },
+    available: () => props.usage() !== null,
+    get theme() {
+      return props.theme;
+    },
+    get open() {
+      return props.open;
+    },
+    get toggleOpen() {
+      return props.toggleOpen;
+    },
+    get children() {
+      return _$createComponent(Show, {
+        get when() {
+          return !props.usage().error;
+        },
+        get fallback() {
+          return _$createComponent(Empty, {
+            get theme() {
+              return props.theme;
+            }
+          });
+        },
+        get children() {
+          return [_$createComponent(PlanRow, {
+            get plan() {
+              return props.usage().plan;
+            },
+            get theme() {
+              return props.theme;
+            }
+          }), _$createComponent(Show, {
+            get when() {
+              return props.usage().fiveHour ?? props.usage().weekly;
+            },
+            get fallback() {
+              return _$createComponent(Empty, {
+                get theme() {
+                  return props.theme;
+                }
+              });
+            },
+            get children() {
+              return [_$createComponent(Show, {
+                get when() {
+                  return props.usage().fiveHour;
+                },
+                children: (window) => _$createComponent(WindowRow, {
+                  label: "5h",
+                  get window() {
+                    return window();
+                  }
+                })
+              }), _$createComponent(Show, {
+                get when() {
+                  return props.usage().weekly;
+                },
+                children: (window) => _$createComponent(WindowRow, {
+                  label: "1w",
+                  get window() {
+                    return window();
+                  }
+                })
+              })];
+            }
+          }), _$createComponent(Row, {
+            get theme() {
+              return props.theme;
+            },
+            get children() {
+              return ["Credits: ", (() => {
+                var _el$ = _$createElement("span"), _el$2 = _$createTextNode(` left`);
+                _$insertNode(_el$, _el$2);
+                _$insert(_el$, () => money(props.usage().totalRemaining), _el$2);
+                _$effect((_$p) => _$setProp(_el$, "style", {
+                  fg: props.theme().primary
+                }, _$p));
+                return _el$;
+              })(), " (", _$memo(() => pct(props.usage().usagePercent)), " used)"];
+            }
+          }), _$createComponent(Show, {
+            get when() {
+              return props.usage().periodCount !== null || props.usage().daysLeft !== null;
+            },
+            get children() {
+              return _$createComponent(Row, {
+                get theme() {
+                  return props.theme;
+                },
+                get children() {
+                  return [_$createComponent(Show, {
+                    get when() {
+                      return props.usage().periodCount !== null;
+                    },
+                    get children() {
+                      return [_$memo(() => props.usage().periodCount.toLocaleString()), " requests - ", _$memo(() => money(props.usage().periodCost)), " spent"];
+                    }
+                  }), _$createComponent(Show, {
+                    get when() {
+                      return props.usage().daysLeft !== null;
+                    },
+                    get children() {
+                      var _el$3 = _$createElement("span"), _el$4 = _$createTextNode(` - `);
+                      _$insertNode(_el$3, _el$4);
+                      _$insert(_el$3, (() => {
+                        var _c$ = _$memo(() => props.usage().daysLeft === 0);
+                        return () => _c$() ? "renews today" : `${props.usage().daysLeft}d to renew`;
+                      })(), null);
+                      _$effect((_$p) => _$setProp(_el$3, "style", {
+                        fg: props.theme().muted
+                      }, _$p));
+                      return _el$3;
+                    }
+                  }), _$createComponent(Show, {
+                    get when() {
+                      return (props.usage().extraRemaining ?? 0) > 0;
+                    },
+                    get children() {
+                      var _el$5 = _$createElement("span"), _el$6 = _$createTextNode(` - Extra: `);
+                      _$insertNode(_el$5, _el$6);
+                      _$insert(_el$5, () => money(props.usage().extraRemaining), null);
+                      _$effect((_$p) => _$setProp(_el$5, "style", {
+                        fg: props.theme().muted
+                      }, _$p));
+                      return _el$5;
+                    }
+                  })];
+                }
+              });
+            }
+          })];
+        }
+      });
+    }
+  });
+}
+export {
+  CommandCodeView
+};
+//# sourceMappingURL=commandcode-view.js.map

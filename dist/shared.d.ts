@@ -1,0 +1,9 @@
+export declare const record: (value: unknown) => value is Record<string, unknown>;
+export declare const numberOrNull: (value: unknown) => number | null;
+export declare const stringOrNull: (value: unknown) => string | null;
+export declare const booleanOrNull: (value: unknown) => boolean | null;
+export declare const dataHome: () => string;
+export declare const readJson: (file: string) => Promise<unknown>;
+export declare const opencodeDataFile: (name: string) => string;
+export declare const errorMessage: (error: unknown) => string;
+//# sourceMappingURL=shared.d.ts.map
