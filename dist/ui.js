@@ -62,27 +62,19 @@ function PlanRow(props) {
   });
 }
 function QuotaRow(props) {
-  const [resetOpen, setResetOpen] = createSignal(true);
+  const [resetOpen, setResetOpen] = createSignal(false);
   const hasReset = () => props.resetAt !== null && props.resetAt !== void 0 && props.resetAt > Date.now();
   const toggleReset = () => {
     if (!hasReset()) return;
     setResetOpen((value) => !value);
     props.requestRender();
   };
-  const resetLabel = () => {
-    const resetAt = props.resetAt;
-    const date = new Date(resetAt);
-    const minutes = Math.max(1, Math.ceil((resetAt - Date.now()) / 6e4));
-    const hours = Math.ceil(minutes / 60);
-    const days = Math.floor(hours / 24);
-    const relative = days > 0 ? `in ${days} ${days === 1 ? "day" : "days"}` : minutes >= 60 ? `in ${hours} ${hours === 1 ? "hour" : "hours"}` : `in ${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
-    return `${date.toLocaleString([], {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    })} (${relative})`;
-  };
+  const resetLabel = () => new Date(props.resetAt).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
   const Summary = () => [_$memo(() => props.label), ": ", _$createComponent(Show, {
     get when() {
       return !props.unavailable;

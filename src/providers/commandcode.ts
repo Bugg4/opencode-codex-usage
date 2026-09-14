@@ -41,6 +41,7 @@ export type CommandCodeUsage = {
   periodCost: number | null
   fiveHour: CCWindow | null
   weekly: CCWindow | null
+  monthly: CCWindow | null
   error?: string
 }
 
@@ -56,6 +57,7 @@ export const emptyCommandCodeUsage = (error: string): CommandCodeUsage => ({
   periodCost: null,
   fiveHour: null,
   weekly: null,
+  monthly: null,
   error,
 })
 
@@ -154,6 +156,7 @@ export const parseCommandCodeUsage = (creditsRaw: unknown, subRaw: unknown, summ
     periodCost,
     fiveHour: parseCommandCodeWindow(windows.fiveHour),
     weekly: parseCommandCodeWindow(windows.weekly),
+    monthly: parseCommandCodeWindow(windows.monthly),
   }
 }
 

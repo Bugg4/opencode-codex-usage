@@ -20,6 +20,7 @@ export type CommandCodeUsage = {
     periodCost: number | null;
     fiveHour: CCWindow | null;
     weekly: CCWindow | null;
+    monthly: CCWindow | null;
     error?: string;
 };
 export declare const emptyCommandCodeUsage: (error: string) => CommandCodeUsage;

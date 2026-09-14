@@ -78,6 +78,7 @@ describe("CommandCode usage", () => {
         windowLimits: {
           fiveHour: { used: 0.06, cap: 14, resetAt: Date.now() + 3_600_000 },
           weekly: { used: 0.9, cap: 35, resetAt: Date.now() + 86_400_000 },
+          monthly: { used: 3.06, cap: 70, resetAt: Date.now() + 2_592_000_000 },
         },
       },
       {
@@ -93,7 +94,7 @@ describe("CommandCode usage", () => {
     assert.equal(usage.plan, "GOAT")
     assert.ok(Math.abs(usage.usagePercent - 1.29) < 0.05)
     assert.equal(usage.periodCount, 336)
-    assert.ok(usage.fiveHour !== null && usage.weekly !== null)
+    assert.ok(usage.fiveHour !== null && usage.weekly !== null && usage.monthly !== null)
   })
 
   it("tolerates missing data", () => {

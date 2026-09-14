@@ -35,6 +35,7 @@ const emptyCommandCodeUsage = (error) => ({
   periodCost: null,
   fiveHour: null,
   weekly: null,
+  monthly: null,
   error
 });
 const planInfo = (planId) => {
@@ -113,7 +114,8 @@ const parseCommandCodeUsage = (creditsRaw, subRaw, summaryRaw) => {
     periodCount: numberOrNull(summary.totalCount),
     periodCost,
     fiveHour: parseCommandCodeWindow(windows.fiveHour),
-    weekly: parseCommandCodeWindow(windows.weekly)
+    weekly: parseCommandCodeWindow(windows.weekly),
+    monthly: parseCommandCodeWindow(windows.monthly)
   };
 };
 const getCommandCodeUsage = async () => {

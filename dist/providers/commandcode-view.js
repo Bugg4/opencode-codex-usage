@@ -23,7 +23,9 @@ function CommandCodeView(props) {
     const fiveHour = windowPct(usage.fiveHour ?? blankWindow);
     if (fiveHour !== null) return `(5h ${pct(100 - fiveHour)} left)`;
     const weekly = windowPct(usage.weekly ?? blankWindow);
-    return weekly === null ? "(unavailable)" : `(1w ${pct(100 - weekly)} left)`;
+    if (weekly !== null) return `(1w ${pct(100 - weekly)} left)`;
+    const monthly = windowPct(usage.monthly ?? blankWindow);
+    return monthly === null ? "(unavailable)" : `(1mo ${pct(100 - monthly)} left)`;
   };
   const WindowRow = (row) => {
     const used = () => windowPct(row.window);
@@ -83,7 +85,7 @@ function CommandCodeView(props) {
             }
           }), _$createComponent(Show, {
             get when() {
-              return props.usage().fiveHour ?? props.usage().weekly;
+              return props.usage().fiveHour ?? props.usage().weekly ?? props.usage().monthly;
             },
             get fallback() {
               return _$createComponent(Empty, {
@@ -109,6 +111,16 @@ function CommandCodeView(props) {
                 },
                 children: (window) => _$createComponent(WindowRow, {
                   label: "1w",
+                  get window() {
+                    return window();
+                  }
+                })
+              }), _$createComponent(Show, {
+                get when() {
+                  return props.usage().monthly;
+                },
+                children: (window) => _$createComponent(WindowRow, {
+                  label: "1mo",
                   get window() {
                     return window();
                   }

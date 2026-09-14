@@ -18,7 +18,9 @@ export function CommandCodeView(props: UsageViewProps<CommandCodeUsage>) {
     const fiveHour = windowPct(usage.fiveHour ?? blankWindow)
     if (fiveHour !== null) return `(5h ${pct(100 - fiveHour)} left)`
     const weekly = windowPct(usage.weekly ?? blankWindow)
-    return weekly === null ? "(unavailable)" : `(1w ${pct(100 - weekly)} left)`
+    if (weekly !== null) return `(1w ${pct(100 - weekly)} left)`
+    const monthly = windowPct(usage.monthly ?? blankWindow)
+    return monthly === null ? "(unavailable)" : `(1mo ${pct(100 - monthly)} left)`
   }
   const WindowRow = (row: { label: string; window: CCWindow }) => {
     const used = () => windowPct(row.window)
@@ -43,9 +45,10 @@ export function CommandCodeView(props: UsageViewProps<CommandCodeUsage>) {
     >
       <Show when={!props.usage()!.error} fallback={<Empty theme={props.theme} />}>
         <PlanRow plan={props.usage()!.plan} theme={props.theme} />
-        <Show when={props.usage()!.fiveHour ?? props.usage()!.weekly} fallback={<Empty theme={props.theme} />}>
+        <Show when={props.usage()!.fiveHour ?? props.usage()!.weekly ?? props.usage()!.monthly} fallback={<Empty theme={props.theme} />}>
           <Show when={props.usage()!.fiveHour}>{(window) => <WindowRow label="5h" window={window()} />}</Show>
           <Show when={props.usage()!.weekly}>{(window) => <WindowRow label="1w" window={window()} />}</Show>
+          <Show when={props.usage()!.monthly}>{(window) => <WindowRow label="1mo" window={window()} />}</Show>
         </Show>
         <Row theme={props.theme}>Credits: <span style={{ fg: props.theme().primary }}>{money(props.usage()!.totalRemaining)} left</span></Row>
         <Show when={props.usage()!.periodCount !== null || props.usage()!.daysLeft !== null}>
