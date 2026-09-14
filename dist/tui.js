@@ -92,12 +92,6 @@ const tui = async (api, options) => {
         });
         return refreshing;
     };
-    await refresh();
-    timer = setInterval(() => void refresh(), refreshInterval.milliseconds);
-    api.lifecycle.onDispose(() => {
-        if (timer)
-            clearInterval(timer);
-    });
     api.slots.register({
         order: 150,
         slots: {
@@ -105,6 +99,12 @@ const tui = async (api, options) => {
                 return _jsx(View, { api: api, usage: usage, loading: loading });
             },
         },
+    });
+    void refresh();
+    timer = setInterval(() => void refresh(), refreshInterval.milliseconds);
+    api.lifecycle.onDispose(() => {
+        if (timer)
+            clearInterval(timer);
     });
 };
 export default {
