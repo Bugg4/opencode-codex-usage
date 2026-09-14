@@ -99,6 +99,7 @@ const createRuntime = <Usage extends UsageResult>(
         theme={theme}
         open={open}
         toggleOpen={toggleOpen}
+        requestRender={requestRender}
       />
     ),
     dispose: () => clearInterval(timer),

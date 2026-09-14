@@ -2,18 +2,6 @@ import { createComponent as _$createComponent } from "@opentui/solid";
 import { memo as _$memo } from "@opentui/solid";
 import { Show } from "solid-js";
 import { Empty, pct, QuotaRow, remaining, Section } from "../ui.js";
-const resetLabel = (iso, percent) => {
-  if (iso === null) return "reset unknown";
-  if (percent === 0) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "reset unknown";
-  return `resets ${date.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  })}`;
-};
 function GoView(props) {
   const shortSummary = () => {
     const usage = props.usage();
@@ -25,7 +13,8 @@ function GoView(props) {
     return "(unavailable)";
   };
   const WindowRow = (row) => {
-    const reset = () => resetLabel(row.window.resetsAt, row.window.percent);
+    const parsedReset = row.window.resetsAt === null ? Number.NaN : Date.parse(row.window.resetsAt);
+    const resetAt = row.window.percent === 0 || Number.isNaN(parsedReset) ? null : parsedReset;
     return _$createComponent(QuotaRow, {
       get label() {
         return row.label;
@@ -33,12 +22,7 @@ function GoView(props) {
       get remainingPercent() {
         return remaining(row.window.percent);
       },
-      get usedPercent() {
-        return row.window.percent;
-      },
-      get reset() {
-        return reset() || void 0;
-      },
+      resetAt,
       get status() {
         return _$memo(() => row.window.status !== "ok")() ? row.window.status : null;
       },
@@ -47,11 +31,14 @@ function GoView(props) {
       },
       get theme() {
         return props.theme;
+      },
+      get requestRender() {
+        return props.requestRender;
       }
     });
   };
   return _$createComponent(Section, {
-    title: "OpenCode Go usage",
+    title: "OpenCode Go Usage",
     shortSummary,
     get loading() {
       return props.loading;

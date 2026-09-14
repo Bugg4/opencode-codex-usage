@@ -1,6 +1,6 @@
 /** @jsxImportSource @opentui/solid */
 import type { RGBA } from "@opentui/core"
-import { Show, type Accessor, type JSX } from "solid-js"
+import { createSignal, Show, type Accessor, type JSX } from "solid-js"
 
 export type UsageTheme = {
   text: RGBA
@@ -17,6 +17,7 @@ export type UsageViewProps<Usage extends { error?: string }> = {
   theme: Accessor<UsageTheme>
   open: Accessor<boolean>
   toggleOpen: () => void
+  requestRender: () => void
 }
 
 export const pct = (value: number | null): string =>
@@ -45,24 +46,62 @@ export function PlanRow(props: { plan: string | null; theme: Accessor<UsageTheme
 export function QuotaRow(props: {
   label: string
   remainingPercent: number | null
-  usedPercent: number | null
-  reset?: string
+  resetAt?: number | null
   status?: string | null
   unavailable?: boolean
   theme: Accessor<UsageTheme>
+  requestRender: () => void
 }) {
-  return (
-    <Row theme={props.theme}>
+  const [resetOpen, setResetOpen] = createSignal(true)
+  const hasReset = () => props.resetAt !== null && props.resetAt !== undefined && props.resetAt > Date.now()
+  const toggleReset = () => {
+    if (!hasReset()) return
+    setResetOpen((value) => !value)
+    props.requestRender()
+  }
+  const resetLabel = () => {
+    const resetAt = props.resetAt!
+    const date = new Date(resetAt)
+    const minutes = Math.max(1, Math.ceil((resetAt - Date.now()) / 60_000))
+    const hours = Math.ceil(minutes / 60)
+    const days = Math.floor(hours / 24)
+    const relative = days > 0
+      ? `in ${days} ${days === 1 ? "day" : "days"}`
+      : minutes >= 60
+        ? `in ${hours} ${hours === 1 ? "hour" : "hours"}`
+        : `in ${minutes} ${minutes === 1 ? "minute" : "minutes"}`
+    return `${date.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })} (${relative})`
+  }
+
+  const Summary = () => (
+    <>
       {props.label}: <Show
         when={!props.unavailable}
         fallback={<span style={{ fg: props.theme().muted }}>(unavailable)</span>}
       >
         <span style={{ fg: props.theme().primary }}>{pct(props.remainingPercent)} left</span>
-        <Show when={props.usedPercent !== null}> <span style={{ fg: props.theme().muted }}>({pct(props.usedPercent)} used)</span></Show>
         <Show when={props.status}><span style={{ fg: props.theme().warning }}> ({props.status})</span></Show>
       </Show>
-      <Show when={props.reset}><span style={{ fg: props.theme().muted }}> - {props.reset}</span></Show>
-    </Row>
+    </>
+  )
+
+  return (
+    <box>
+      <Show
+        when={hasReset()}
+        fallback={<Row theme={props.theme}><Summary /></Row>}
+      >
+        <box flexDirection="row" gap={1} onMouseDown={toggleReset}>
+          <text flexShrink={0} fg={props.theme().muted}>{resetOpen() ? "▼" : "▶"}</text>
+          <text fg={props.theme().text} wrapMode="word"><Summary /></text>
+        </box>
+        <Show when={resetOpen()}>
+          <box paddingLeft={2}>
+            <Row theme={props.theme}>Resets: {resetLabel()}</Row>
+          </box>
+        </Show>
+      </Show>
+    </box>
   )
 }
 

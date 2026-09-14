@@ -13,15 +13,6 @@ const windowLabel = (window, fallback) => {
   if (hours >= 24 && days % 7 === 0) return `${days / 7}w`;
   return hours >= 24 ? `${days}d` : `${hours}h`;
 };
-const resetLabel = (timestamp) => {
-  if (timestamp === null) return "reset unknown";
-  return `resets ${new Date(timestamp * 1e3).toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  })}`;
-};
 function CodexView(props) {
   const shortSummary = () => {
     const usage = props.usage();
@@ -48,18 +39,18 @@ function CodexView(props) {
     get remainingPercent() {
       return row.window.remainingPercent;
     },
-    get usedPercent() {
-      return row.window.usedPercent;
-    },
-    get reset() {
-      return _$memo(() => row.window.resetAt === null)() ? void 0 : resetLabel(row.window.resetAt);
+    get resetAt() {
+      return _$memo(() => row.window.resetAt === null)() ? null : row.window.resetAt * 1e3;
     },
     get theme() {
       return props.theme;
+    },
+    get requestRender() {
+      return props.requestRender;
     }
   });
   return _$createComponent(Section, {
-    title: "Codex usage",
+    title: "Codex Usage",
     shortSummary,
     get loading() {
       return props.loading;

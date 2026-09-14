@@ -11,16 +11,6 @@ const windowLabel = (window: WindowUsage, fallback: string): string => {
   return hours >= 24 ? `${days}d` : `${hours}h`
 }
 
-const resetLabel = (timestamp: number | null): string => {
-  if (timestamp === null) return "reset unknown"
-  return `resets ${new Date(timestamp * 1000).toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`
-}
-
 export function CodexView(props: UsageViewProps<CodexUsage>) {
   const shortSummary = () => {
     const usage = props.usage()
@@ -45,14 +35,14 @@ export function CodexView(props: UsageViewProps<CodexUsage>) {
   const WindowRow = (row: { label: string; window: WindowUsage }) => <QuotaRow
     label={windowLabel(row.window, row.label)}
     remainingPercent={row.window.remainingPercent}
-    usedPercent={row.window.usedPercent}
-    reset={row.window.resetAt === null ? undefined : resetLabel(row.window.resetAt)}
+    resetAt={row.window.resetAt === null ? null : row.window.resetAt * 1000}
     theme={props.theme}
+    requestRender={props.requestRender}
   />
 
   return (
     <Section
-      title="Codex usage"
+      title="Codex Usage"
       shortSummary={shortSummary}
       loading={props.loading}
       available={() => props.usage() !== null}

@@ -76,7 +76,8 @@ const createRuntime = (provider, refreshInterval, theme, requestRender) => {
       loading,
       theme,
       open,
-      toggleOpen
+      toggleOpen,
+      requestRender
     }),
     dispose: () => clearInterval(timer)
   };

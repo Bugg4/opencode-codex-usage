@@ -10,21 +10,6 @@ import { Show } from "solid-js";
 import { Empty, pct, PlanRow, QuotaRow, Row, Section } from "../ui.js";
 const money = (value) => value === null ? "--" : `$${value.toFixed(2)}`;
 const windowPct = (window) => window.used === null || window.cap === null || window.cap <= 0 ? null : Math.min(100, window.used / window.cap * 100);
-const resetLabel = (timestamp, now) => {
-  if (timestamp === null || timestamp <= now) return "reset unknown";
-  const minutes = Math.max(1, Math.ceil((timestamp - now) / 6e4));
-  const days = Math.floor(minutes / 1440);
-  const hours = Math.floor(minutes % 1440 / 60);
-  const remainder = minutes % 60;
-  const relative = days > 0 ? hours > 0 ? `${days}d ${hours}h` : `${days}d` : hours > 0 ? `${hours}h ${remainder}m` : `${remainder}m`;
-  const date = new Date(timestamp);
-  return `resets in ${relative} (${date.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  })})`;
-};
 const blankWindow = {
   used: null,
   cap: null,
@@ -49,19 +34,19 @@ function CommandCodeView(props) {
       get remainingPercent() {
         return _$memo(() => used() === null)() ? null : 100 - used();
       },
-      get usedPercent() {
-        return used();
-      },
-      get reset() {
-        return resetLabel(row.window.resetAt, Date.now());
+      get resetAt() {
+        return row.window.resetAt;
       },
       get theme() {
         return props.theme;
+      },
+      get requestRender() {
+        return props.requestRender;
       }
     });
   };
   return _$createComponent(Section, {
-    title: "CommandCode usage",
+    title: "CommandCode Usage",
     shortSummary,
     get loading() {
       return props.loading;
@@ -143,7 +128,7 @@ function CommandCodeView(props) {
                   fg: props.theme().primary
                 }, _$p));
                 return _el$;
-              })(), " (", _$memo(() => pct(props.usage().usagePercent)), " used)"];
+              })()];
             }
           }), _$createComponent(Show, {
             get when() {

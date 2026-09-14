@@ -17,6 +17,7 @@ export type UsageViewProps<Usage extends {
     theme: Accessor<UsageTheme>;
     open: Accessor<boolean>;
     toggleOpen: () => void;
+    requestRender: () => void;
 };
 export declare const pct: (value: number | null) => string;
 export declare const remaining: (value: number | null) => number | null;
@@ -34,11 +35,11 @@ export declare function PlanRow(props: {
 export declare function QuotaRow(props: {
     label: string;
     remainingPercent: number | null;
-    usedPercent: number | null;
-    reset?: string;
+    resetAt?: number | null;
     status?: string | null;
     unavailable?: boolean;
     theme: Accessor<UsageTheme>;
+    requestRender: () => void;
 }): JSX.Element;
 export declare function Section(props: {
     title: string;
