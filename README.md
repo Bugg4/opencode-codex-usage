@@ -1,8 +1,6 @@
 # opencode-multi-usage
 
-<table>
-<tr>
-<td valign="top">
+<img src="demo.png" alt="Demo of the usage sidebar" align="right" width="380" />
 
 OpenCode sidebar plugin that displays subscription usage for:
 
@@ -13,12 +11,7 @@ OpenCode sidebar plugin that displays subscription usage for:
 Providers are opt-in. If none are configured, the sidebar shows a short setup
 message and the plugin makes no usage requests.
 
-</td>
-<td valign="top" align="right" width="400">
-<img src="demo.png" alt="Demo of the usage sidebar" width="380" />
-</td>
-</tr>
-</table>
+<br clear="both" />
 
 ## OpenCode v1
 
