@@ -40,7 +40,7 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run clean && npm run build && node --test test/*.test.js",
-    "prepack": "npm run clean && npm run build"
+    "prepare": "npm run build"
   },
   "engines": {
     "node": ">=22"
