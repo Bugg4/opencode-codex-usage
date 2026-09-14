@@ -24,15 +24,36 @@ function View(props: { api: TuiPluginApi; usage: () => Usage | null; loading: ()
   const theme = () => props.api.theme.current
   const u = () => props.usage()
 
+  const shortSummary = () => {
+    const value = u()
+    if (!value && props.loading()) return "(loading)"
+    if (!value || value.error) return "(unavailable)"
+    // ponytail: primary is the shortest window; secondary is the fallback
+    if (value.primary?.remainingPercent !== null && value.primary?.remainingPercent !== undefined) {
+      return `(5h ${pct(value.primary.remainingPercent)} left)`
+    }
+    if (value.secondary) return `(${windowLabel(value.secondary, "wk")} ${pct(value.secondary.remainingPercent)} left)`
+    return "(unavailable)"
+  }
+
   const summary = () => {
     const value = u()
     if (!value && props.loading()) return "(loading)"
     if (!value) return "(unavailable)"
-    if (value.error) return `(error: ${value.error})`
+    if (value.error) return "(unavailable)"
     const plan = value.plan ?? "?"
     const left = value.primary ? pct(value.primary.remainingPercent) : "--%"
     return `(${plan} · ${left} left)`
   }
+
+  const Empty = () => (
+    <box flexDirection="row" gap={1}>
+      <text flexShrink={0} fg={theme().textMuted}>
+        •
+      </text>
+      <text fg={theme().textMuted}>(unavailable)</text>
+    </box>
+  )
 
   const statusColor = () => {
     const value = u()
@@ -72,7 +93,7 @@ function View(props: { api: TuiPluginApi; usage: () => Usage | null; loading: ()
         <text fg={theme().text}>
           <b>Codex usage</b>
           <Show when={!open()}>
-            <span style={{ fg: theme().textMuted }}>{" "}{summary()}</span>
+            <span style={{ fg: theme().textMuted }}>{" "}{shortSummary()}</span>
           </Show>
         </text>
       </box>
@@ -87,10 +108,7 @@ function View(props: { api: TuiPluginApi; usage: () => Usage | null; loading: ()
         >
           {(value) => (
             <box flexDirection="column">
-              <Show when={value().error}>
-                <text fg={theme().error}>{value().error}</text>
-              </Show>
-              <Show when={!value().error}>
+              <Show when={!value().error} fallback={<Empty />}>
                 <box flexDirection="row" gap={1}>
                   <text flexShrink={0} fg={theme().textMuted}>
                     •
@@ -100,11 +118,13 @@ function View(props: { api: TuiPluginApi; usage: () => Usage | null; loading: ()
                     <span style={{ fg: statusColor() }}>{statusText()}</span>
                   </text>
                 </box>
-                <Show when={value().primary}>
-                  {(win) => <WindowRow label="Primary window" win={win()} />}
-                </Show>
-                <Show when={value().secondary}>
-                  {(win) => <WindowRow label="Secondary window" win={win()} />}
+                <Show when={value().primary ?? value().secondary} fallback={<Empty />}>
+                  <Show when={value().primary}>
+                    {(win) => <WindowRow label="Primary window" win={win()} />}
+                  </Show>
+                  <Show when={value().secondary}>
+                    {(win) => <WindowRow label="Secondary window" win={win()} />}
+                  </Show>
                 </Show>
               </Show>
             </box>

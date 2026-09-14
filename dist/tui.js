@@ -21,6 +21,20 @@ function View(props) {
     const [open, setOpen] = createSignal(true);
     const theme = () => props.api.theme.current;
     const u = () => props.usage();
+    const shortSummary = () => {
+        const value = u();
+        if (!value && props.loading())
+            return "(loading)";
+        if (!value || value.error)
+            return "(unavailable)";
+        // ponytail: primary is the shortest window; secondary is the fallback
+        if (value.primary?.remainingPercent !== null && value.primary?.remainingPercent !== undefined) {
+            return `(5h ${pct(value.primary.remainingPercent)} left)`;
+        }
+        if (value.secondary)
+            return `(${windowLabel(value.secondary, "wk")} ${pct(value.secondary.remainingPercent)} left)`;
+        return "(unavailable)";
+    };
     const summary = () => {
         const value = u();
         if (!value && props.loading())
@@ -28,11 +42,12 @@ function View(props) {
         if (!value)
             return "(unavailable)";
         if (value.error)
-            return `(error: ${value.error})`;
+            return "(unavailable)";
         const plan = value.plan ?? "?";
         const left = value.primary ? pct(value.primary.remainingPercent) : "--%";
         return `(${plan} · ${left} left)`;
     };
+    const Empty = () => (_jsxs("box", { flexDirection: "row", gap: 1, children: [_jsx("text", { flexShrink: 0, fg: theme().textMuted, children: "\u2022" }), _jsx("text", { fg: theme().textMuted, children: "(unavailable)" })] }));
     const statusColor = () => {
         const value = u();
         return value?.allowed === false || value?.limitReached === true ? theme().error : theme().success;
@@ -43,7 +58,7 @@ function View(props) {
         return value.limitReached === true ? `${base} · limit reached` : base;
     };
     const WindowRow = (p) => (_jsxs("box", { flexDirection: "row", gap: 1, children: [_jsx("text", { flexShrink: 0, fg: theme().textMuted, children: "\u2022" }), _jsxs("text", { fg: theme().text, wrapMode: "word", children: [windowLabel(p.win, p.label), ":", " ", _jsxs("span", { style: { fg: theme().primary }, children: [pct(p.win.remainingPercent), " left"] }), _jsxs(Show, { when: p.win.usedPercent !== null, children: [" ", _jsxs("span", { style: { fg: theme().textMuted }, children: ["(", pct(p.win.usedPercent), " used)"] })] }), _jsx(Show, { when: p.win.resetAt !== null, children: _jsxs("span", { style: { fg: theme().textMuted }, children: [" \u00B7 ", resetLabel(p.win.resetAt)] }) })] })] }));
-    return (_jsxs("box", { children: [_jsxs("box", { flexDirection: "row", gap: 1, onMouseDown: () => setOpen((x) => !x), children: [_jsx("text", { fg: theme().text, children: open() ? "▼" : "▶" }), _jsxs("text", { fg: theme().text, children: [_jsx("b", { children: "Codex usage" }), _jsx(Show, { when: !open(), children: _jsxs("span", { style: { fg: theme().textMuted }, children: [" ", summary()] }) })] })] }), _jsx(Show, { when: open(), children: _jsx(Show, { when: u(), fallback: _jsx("text", { fg: theme().textMuted, children: props.loading() ? "Loading usage..." : "Usage unavailable" }), children: (value) => (_jsxs("box", { flexDirection: "column", children: [_jsx(Show, { when: value().error, children: _jsx("text", { fg: theme().error, children: value().error }) }), _jsxs(Show, { when: !value().error, children: [_jsxs("box", { flexDirection: "row", gap: 1, children: [_jsx("text", { flexShrink: 0, fg: theme().textMuted, children: "\u2022" }), _jsxs("text", { fg: theme().text, children: ["Plan: ", _jsx("b", { children: value().plan ?? "unknown" }), " \u00B7", " ", _jsx("span", { style: { fg: statusColor() }, children: statusText() })] })] }), _jsx(Show, { when: value().primary, children: (win) => _jsx(WindowRow, { label: "Primary window", win: win() }) }), _jsx(Show, { when: value().secondary, children: (win) => _jsx(WindowRow, { label: "Secondary window", win: win() }) })] })] })) }) })] }));
+    return (_jsxs("box", { children: [_jsxs("box", { flexDirection: "row", gap: 1, onMouseDown: () => setOpen((x) => !x), children: [_jsx("text", { fg: theme().text, children: open() ? "▼" : "▶" }), _jsxs("text", { fg: theme().text, children: [_jsx("b", { children: "Codex usage" }), _jsx(Show, { when: !open(), children: _jsxs("span", { style: { fg: theme().textMuted }, children: [" ", shortSummary()] }) })] })] }), _jsx(Show, { when: open(), children: _jsx(Show, { when: u(), fallback: _jsx("text", { fg: theme().textMuted, children: props.loading() ? "Loading usage..." : "Usage unavailable" }), children: (value) => (_jsx("box", { flexDirection: "column", children: _jsxs(Show, { when: !value().error, fallback: _jsx(Empty, {}), children: [_jsxs("box", { flexDirection: "row", gap: 1, children: [_jsx("text", { flexShrink: 0, fg: theme().textMuted, children: "\u2022" }), _jsxs("text", { fg: theme().text, children: ["Plan: ", _jsx("b", { children: value().plan ?? "unknown" }), " \u00B7", " ", _jsx("span", { style: { fg: statusColor() }, children: statusText() })] })] }), _jsxs(Show, { when: value().primary ?? value().secondary, fallback: _jsx(Empty, {}), children: [_jsx(Show, { when: value().primary, children: (win) => _jsx(WindowRow, { label: "Primary window", win: win() }) }), _jsx(Show, { when: value().secondary, children: (win) => _jsx(WindowRow, { label: "Secondary window", win: win() }) })] })] }) })) }) })] }));
 }
 const tui = async (api, options) => {
     let timer;
