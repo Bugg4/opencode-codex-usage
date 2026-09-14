@@ -17,8 +17,16 @@ describe("Codex usage", () => {
       rate_limit: {
         allowed: true,
         limit_reached: false,
-        primary_window: { used_percent: 30, limit_window_seconds: 10800, reset_at: 1789000000 },
-        secondary_window: { used_percent: 10, limit_window_seconds: 604800, reset_at: 1789600000 },
+        primary_window: {
+          used_percent: 30,
+          limit_window_seconds: 10800,
+          reset_at: 1789000000,
+        },
+        secondary_window: {
+          used_percent: 10,
+          limit_window_seconds: 604800,
+          reset_at: 1789600000,
+        },
       },
     })
     assert.equal(usage.plan, "plus")
@@ -36,7 +44,9 @@ describe("Codex usage", () => {
   it("extracts direct and nested account IDs", () => {
     assert.equal(accountIdFromToken(`h.${b64url({ chatgpt_account_id: "acc-123" })}.s`), "acc-123")
     assert.equal(
-      accountIdFromToken(`h.${b64url({ "https://api.openai.com/auth": { chatgpt_account_id: "acc-456" } })}.s`),
+      accountIdFromToken(
+        `h.${b64url({ "https://api.openai.com/auth": { chatgpt_account_id: "acc-456" } })}.s`,
+      ),
       "acc-456",
     )
     assert.equal(accountIdFromToken("not-a-jwt"), undefined)
@@ -49,7 +59,11 @@ describe("OpenCode Go usage", () => {
       usage: {
         rolling: { percent: 5, resetsAt: "2026-09-14T10:00:00Z", status: "ok" },
         weekly: { percent: 20, resetsAt: "2026-09-21T00:00:00Z", status: "ok" },
-        monthly: { percent: 40, resetsAt: "2026-10-01T00:00:00Z", status: "warn" },
+        monthly: {
+          percent: 40,
+          resetsAt: "2026-10-01T00:00:00Z",
+          status: "warn",
+        },
       },
     })
     assert.equal(usage.rolling?.percent, 5)
@@ -67,7 +81,10 @@ describe("OpenCode Go usage", () => {
 describe("CommandCode usage", () => {
   it("normalizes known plans", () => {
     assert.deepEqual(planInfo("individual-goat"), { name: "GOAT", monthly: 70 })
-    assert.deepEqual(planInfo("individual_pro_v1"), { name: "Pro", monthly: 80 })
+    assert.deepEqual(planInfo("individual_pro_v1"), {
+      name: "Pro",
+      monthly: 80,
+    })
     assert.equal(planInfo("mystery-plan"), null)
   })
 

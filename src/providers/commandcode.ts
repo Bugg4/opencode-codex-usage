@@ -27,7 +27,11 @@ export const PLAN_NAMES: Record<string, string> = {
   "teams-pro": "Teams Pro",
 }
 
-export type CCWindow = { used: number | null; cap: number | null; resetAt: number | null }
+export type CCWindow = {
+  used: number | null
+  cap: number | null
+  resetAt: number | null
+}
 
 export type CommandCodeUsage = {
   plan: string | null
@@ -73,11 +77,16 @@ export const planInfo = (planId: string | null): { name: string; monthly: number
 
 export const parseCommandCodeWindow = (value: unknown): CCWindow | null => {
   if (!record(value)) return null
-  return { used: numberOrNull(value.used), cap: numberOrNull(value.cap), resetAt: numberOrNull(value.resetAt) }
+  return {
+    used: numberOrNull(value.used),
+    cap: numberOrNull(value.cap),
+    resetAt: numberOrNull(value.resetAt),
+  }
 }
 
 const readAuth = async (): Promise<string | undefined> => {
-  const environmentKey = stringOrNull(process.env.COMMANDCODE_API_KEY) ?? stringOrNull(process.env.COMMAND_CODE_API_KEY)
+  const environmentKey =
+    stringOrNull(process.env.COMMANDCODE_API_KEY) ?? stringOrNull(process.env.COMMAND_CODE_API_KEY)
   if (environmentKey) return environmentKey
   try {
     const data = await readJson(opencodeDataFile("auth.json"))
@@ -90,13 +99,14 @@ const readAuth = async (): Promise<string | undefined> => {
   }
   try {
     const data = await readJson(path.join(process.env.HOME ?? "", ".commandcode", "auth.json"))
-    return record(data) ? stringOrNull(data.apiKey) ?? undefined : undefined
+    return record(data) ? (stringOrNull(data.apiKey) ?? undefined) : undefined
   } catch {
     return undefined
   }
 }
 
-export const commandCodeBaseUrl = (): string => stringOrNull(process.env.COMMANDCODE_API_URL) ?? DEFAULT_BASE_URL
+export const commandCodeBaseUrl = (): string =>
+  stringOrNull(process.env.COMMANDCODE_API_URL) ?? DEFAULT_BASE_URL
 
 export const commandCodeHeaders = (key: string): Record<string, string> => ({
   Authorization: `Bearer ${key}`,
@@ -113,13 +123,19 @@ const fetchJson = async (key: string, suffix: string): Promise<unknown> => {
     signal: AbortSignal.timeout(10_000),
   })
   if (response.status === 401) {
-    throw new Error("CommandCode key rejected (401); run `cmd auth login` or reconnect from /connect")
+    throw new Error(
+      "CommandCode key rejected (401); run `cmd auth login` or reconnect from /connect",
+    )
   }
   if (!response.ok) throw new Error(`Usage request failed (${response.status})`)
   return response.json()
 }
 
-export const parseCommandCodeUsage = (creditsRaw: unknown, subRaw: unknown, summaryRaw: unknown): CommandCodeUsage => {
+export const parseCommandCodeUsage = (
+  creditsRaw: unknown,
+  subRaw: unknown,
+  summaryRaw: unknown,
+): CommandCodeUsage => {
   const credits = record(creditsRaw) && record(creditsRaw.credits) ? creditsRaw.credits : {}
   const sub = record(subRaw) && record(subRaw.data) ? subRaw.data : {}
   const summary = record(summaryRaw) ? summaryRaw : {}
@@ -142,7 +158,8 @@ export const parseCommandCodeUsage = (creditsRaw: unknown, subRaw: unknown, summ
       : null
   const periodEnd = stringOrNull(sub.currentPeriodEnd)
   const end = periodEnd ? Date.parse(periodEnd) : Number.NaN
-  const windows = record(creditsRaw) && record(creditsRaw.windowLimits) ? creditsRaw.windowLimits : {}
+  const windows =
+    record(creditsRaw) && record(creditsRaw.windowLimits) ? creditsRaw.windowLimits : {}
 
   return {
     plan: plan?.name ?? stringOrNull(sub.planId),

@@ -29,18 +29,30 @@ export const remaining = (value: number | null): number | null =>
 export function Row(props: { theme: Accessor<UsageTheme>; children: JSX.Element }) {
   return (
     <box flexDirection="row" gap={1}>
-      <text flexShrink={0} fg={props.theme().muted}>•</text>
-      <text fg={props.theme().text} wrapMode="word">{props.children}</text>
+      <text flexShrink={0} fg={props.theme().muted}>
+        •
+      </text>
+      <text fg={props.theme().text} wrapMode="word">
+        {props.children}
+      </text>
     </box>
   )
 }
 
 export function Empty(props: { theme: Accessor<UsageTheme> }) {
-  return <Row theme={props.theme}><span style={{ fg: props.theme().muted }}>(unavailable)</span></Row>
+  return (
+    <Row theme={props.theme}>
+      <span style={{ fg: props.theme().muted }}>(unavailable)</span>
+    </Row>
+  )
 }
 
 export function PlanRow(props: { plan: string | null; theme: Accessor<UsageTheme> }) {
-  return <Row theme={props.theme}>Plan: <b>{props.plan ?? "unknown"}</b></Row>
+  return (
+    <Row theme={props.theme}>
+      Plan: <b>{props.plan ?? "unknown"}</b>
+    </Row>
+  )
 }
 
 export function QuotaRow(props: {
@@ -53,7 +65,8 @@ export function QuotaRow(props: {
   requestRender: () => void
 }) {
   const [resetOpen, setResetOpen] = createSignal(false)
-  const hasReset = () => props.resetAt !== null && props.resetAt !== undefined && props.resetAt > Date.now()
+  const hasReset = () =>
+    props.resetAt !== null && props.resetAt !== undefined && props.resetAt > Date.now()
   const toggleReset = () => {
     if (!hasReset()) return
     setResetOpen((value) => !value)
@@ -69,12 +82,15 @@ export function QuotaRow(props: {
 
   const Summary = () => (
     <>
-      {props.label}: <Show
+      {props.label}:{" "}
+      <Show
         when={!props.unavailable}
         fallback={<span style={{ fg: props.theme().muted }}>(unavailable)</span>}
       >
         <span style={{ fg: props.theme().primary }}>{pct(props.remainingPercent)} left</span>
-        <Show when={props.status}><span style={{ fg: props.theme().warning }}> ({props.status})</span></Show>
+        <Show when={props.status}>
+          <span style={{ fg: props.theme().warning }}> ({props.status})</span>
+        </Show>
       </Show>
     </>
   )
@@ -83,11 +99,19 @@ export function QuotaRow(props: {
     <box>
       <Show
         when={hasReset()}
-        fallback={<Row theme={props.theme}><Summary /></Row>}
+        fallback={
+          <Row theme={props.theme}>
+            <Summary />
+          </Row>
+        }
       >
         <box flexDirection="row" gap={1} onMouseDown={toggleReset}>
-          <text flexShrink={0} fg={props.theme().muted}>{resetOpen() ? "▼" : "▶"}</text>
-          <text fg={props.theme().text} wrapMode="word"><Summary /></text>
+          <text flexShrink={0} fg={props.theme().muted}>
+            {resetOpen() ? "▼" : "▶"}
+          </text>
+          <text fg={props.theme().text} wrapMode="word">
+            <Summary />
+          </text>
         </box>
         <Show when={resetOpen()}>
           <box paddingLeft={2}>
@@ -123,7 +147,11 @@ export function Section(props: {
       <Show when={props.open()}>
         <Show
           when={props.available()}
-          fallback={<text fg={props.theme().muted}>{props.loading() ? "Loading usage..." : "Usage unavailable"}</text>}
+          fallback={
+            <text fg={props.theme().muted}>
+              {props.loading() ? "Loading usage..." : "Usage unavailable"}
+            </text>
+          }
         >
           {props.children}
         </Show>

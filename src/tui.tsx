@@ -58,7 +58,10 @@ const createRuntime = <Usage extends UsageResult>(
   theme: Accessor<UsageTheme>,
   requestRender: () => void,
 ): Runtime => {
-  const interval = parseRefreshInterval(refreshInterval, parseRefreshInterval(provider.defaultRefreshInterval).milliseconds)
+  const interval = parseRefreshInterval(
+    refreshInterval,
+    parseRefreshInterval(provider.defaultRefreshInterval).milliseconds,
+  )
   const [usage, setUsage] = createSignal<Usage | null>(null)
   const [loading, setLoading] = createSignal(true)
   const [open, setOpen] = createSignal(true)
@@ -116,16 +119,27 @@ const mount = (
   const enabled = parseProviders(options.providers)
   const runtimes: Runtime[] = []
   for (const id of enabled) {
-    if (id === "codex") runtimes.push(createRuntime(providers.codex, options.refreshInterval, theme, requestRender))
-    if (id === "opencode-go") runtimes.push(createRuntime(providers["opencode-go"], options.refreshInterval, theme, requestRender))
-    if (id === "commandcode") runtimes.push(createRuntime(providers.commandcode, options.refreshInterval, theme, requestRender))
+    if (id === "codex")
+      runtimes.push(createRuntime(providers.codex, options.refreshInterval, theme, requestRender))
+    if (id === "opencode-go")
+      runtimes.push(
+        createRuntime(providers["opencode-go"], options.refreshInterval, theme, requestRender),
+      )
+    if (id === "commandcode")
+      runtimes.push(
+        createRuntime(providers.commandcode, options.refreshInterval, theme, requestRender),
+      )
   }
 
   const unregister = register(() => (
     <box flexDirection="column">
-      {runtimes.length > 0
-        ? runtimes.map((runtime) => runtime.render())
-        : <text fg={theme().warning}>Enable usage providers in the opencode-multi-usage plugin config.</text>}
+      {runtimes.length > 0 ? (
+        runtimes.map((runtime) => runtime.render())
+      ) : (
+        <text fg={theme().warning}>
+          Enable usage providers in the opencode-multi-usage plugin config.
+        </text>
+      )}
     </box>
   ))
   return () => {

@@ -132,7 +132,7 @@ function CommandCodeView(props) {
               return props.theme;
             },
             get children() {
-              return ["Credits: ", (() => {
+              return ["Credits:", " ", (() => {
                 var _el$ = _$createElement("span"), _el$2 = _$createTextNode(` left`);
                 _$insertNode(_el$, _el$2);
                 _$insert(_el$, () => money(props.usage().totalRemaining), _el$2);
@@ -157,7 +157,7 @@ function CommandCodeView(props) {
                       return props.usage().periodCount !== null;
                     },
                     get children() {
-                      return [_$memo(() => props.usage().periodCount.toLocaleString()), " requests - ", _$memo(() => money(props.usage().periodCost)), " spent"];
+                      return [_$memo(() => props.usage().periodCount.toLocaleString()), " requests -", " ", _$memo(() => money(props.usage().periodCost)), " spent"];
                     }
                   }), _$createComponent(Show, {
                     get when() {
@@ -180,13 +180,13 @@ function CommandCodeView(props) {
                       return (props.usage().extraRemaining ?? 0) > 0;
                     },
                     get children() {
-                      var _el$5 = _$createElement("span"), _el$6 = _$createTextNode(` - Extra: `);
-                      _$insertNode(_el$5, _el$6);
-                      _$insert(_el$5, () => money(props.usage().extraRemaining), null);
-                      _$effect((_$p) => _$setProp(_el$5, "style", {
+                      var _el$7 = _$createElement("span"), _el$8 = _$createTextNode(` - Extra: `);
+                      _$insertNode(_el$7, _el$8);
+                      _$insert(_el$7, () => money(props.usage().extraRemaining), null);
+                      _$effect((_$p) => _$setProp(_el$7, "style", {
                         fg: props.theme().muted
                       }, _$p));
-                      return _el$5;
+                      return _el$7;
                     }
                   })];
                 }

@@ -20,5 +20,9 @@ export default defineConfig({
   bundle: false,
   clean: false,
   sourcemap: true,
-  esbuildPlugins: [solidPlugin({ solid: { moduleName: "@opentui/solid", generate: "universal" } })],
+  esbuildPlugins: [
+    solidPlugin({
+      solid: { moduleName: "@opentui/solid", generate: "universal" },
+    }),
+  ],
 })

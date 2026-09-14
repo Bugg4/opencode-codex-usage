@@ -1,4 +1,11 @@
-import { opencodeDataFile, booleanOrNull, numberOrNull, readJson, record, stringOrNull } from "../shared.js";
+import {
+  opencodeDataFile,
+  booleanOrNull,
+  numberOrNull,
+  readJson,
+  record,
+  stringOrNull
+} from "../shared.js";
 const USAGE_URL = "https://chatgpt.com/backend-api/wham/usage";
 const emptyCodexUsage = (error) => ({
   plan: null,
@@ -66,9 +73,15 @@ const readAuth = async () => {
 const getCodexUsage = async () => {
   const auth = await readAuth();
   if (!auth.access) throw new Error("Connect ChatGPT from /connect first");
-  const headers = new Headers({ Authorization: `Bearer ${auth.access}`, Accept: "application/json" });
+  const headers = new Headers({
+    Authorization: `Bearer ${auth.access}`,
+    Accept: "application/json"
+  });
   if (auth.accountId) headers.set("ChatGPT-Account-ID", auth.accountId);
-  const response = await fetch(USAGE_URL, { headers, signal: AbortSignal.timeout(1e4) });
+  const response = await fetch(USAGE_URL, {
+    headers,
+    signal: AbortSignal.timeout(1e4)
+  });
   if (response.status === 401 || response.status === 403) {
     throw new Error("ChatGPT session expired; reconnect from /connect");
   }

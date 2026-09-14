@@ -9,9 +9,9 @@ describe("parseProviders", () => {
   })
 
   it("filters unknown values, removes duplicates, and uses stable display order", () => {
-    assert.deepEqual(
-      parseProviders(["commandcode", "unknown", "codex", "commandcode"]),
-      ["codex", "commandcode"],
-    )
+    assert.deepEqual(parseProviders(["commandcode", "unknown", "codex", "commandcode"]), [
+      "codex",
+      "commandcode",
+    ])
   })
 })

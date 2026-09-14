@@ -38,12 +38,7 @@ Requires OpenCode 1.18.29 or newer. Add the package and options to
 ```json
 {
   "$schema": "https://opencode.ai/tui.json",
-  "plugin": [
-    [
-      "opencode-multi-usage",
-      { "providers": ["codex", "opencode-go", "commandcode"] }
-    ]
-  ]
+  "plugin": [["opencode-multi-usage", { "providers": ["codex", "opencode-go", "commandcode"] }]]
 }
 ```
 
@@ -128,6 +123,13 @@ Reconnect the affected provider when a saved credential is rejected.
 npm install
 npm run typecheck
 npm test
+```
+
+Format with [Prettier](https://prettier.io) (`printWidth: 100`):
+
+```bash
+npm run format
+npm run format:check
 ```
 
 ## License

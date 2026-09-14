@@ -75,7 +75,7 @@ function QuotaRow(props) {
     hour: "2-digit",
     minute: "2-digit"
   });
-  const Summary = () => [_$memo(() => props.label), ": ", _$createComponent(Show, {
+  const Summary = () => [_$memo(() => props.label), ":", " ", _$createComponent(Show, {
     get when() {
       return !props.unavailable;
     },

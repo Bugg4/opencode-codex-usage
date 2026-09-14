@@ -72,10 +72,15 @@ export const getGoUsage = async (): Promise<GoUsage> => {
   const key = await readAuth()
   if (!key) throw new Error("Connect OpenCode Go from /connect first")
   const response = await fetch(USAGE_URL, {
-    headers: { Authorization: `Bearer ${key}`, Accept: "application/json", "User-Agent": USER_AGENT },
+    headers: {
+      Authorization: `Bearer ${key}`,
+      Accept: "application/json",
+      "User-Agent": USER_AGENT,
+    },
     signal: AbortSignal.timeout(10_000),
   })
-  if (response.status === 401) throw new Error("OpenCode Go key rejected (401); reconnect from /connect")
+  if (response.status === 401)
+    throw new Error("OpenCode Go key rejected (401); reconnect from /connect")
   if (response.status === 403) {
     const body = await response.text().catch(() => "")
     if (body.includes("1010") || body.includes("cloudflare")) {

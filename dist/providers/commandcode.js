@@ -47,7 +47,11 @@ const planInfo = (planId) => {
 };
 const parseCommandCodeWindow = (value) => {
   if (!record(value)) return null;
-  return { used: numberOrNull(value.used), cap: numberOrNull(value.cap), resetAt: numberOrNull(value.resetAt) };
+  return {
+    used: numberOrNull(value.used),
+    cap: numberOrNull(value.cap),
+    resetAt: numberOrNull(value.resetAt)
+  };
 };
 const readAuth = async () => {
   const environmentKey = stringOrNull(process.env.COMMANDCODE_API_KEY) ?? stringOrNull(process.env.COMMAND_CODE_API_KEY);
@@ -82,7 +86,9 @@ const fetchJson = async (key, suffix) => {
     signal: AbortSignal.timeout(1e4)
   });
   if (response.status === 401) {
-    throw new Error("CommandCode key rejected (401); run `cmd auth login` or reconnect from /connect");
+    throw new Error(
+      "CommandCode key rejected (401); run `cmd auth login` or reconnect from /connect"
+    );
   }
   if (!response.ok) throw new Error(`Usage request failed (${response.status})`);
   return response.json();

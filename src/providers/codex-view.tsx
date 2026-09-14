@@ -25,20 +25,29 @@ export function CodexView(props: UsageViewProps<CodexUsage>) {
   }
   const statusColor = () => {
     const usage = props.usage()
-    return usage?.allowed === false || usage?.limitReached === true ? props.theme().error : props.theme().success
+    return usage?.allowed === false || usage?.limitReached === true
+      ? props.theme().error
+      : props.theme().success
   }
   const statusText = () => {
     const usage = props.usage()!
-    const allowed = usage.allowed === true ? "Allowed" : usage.allowed === false ? "Not allowed" : "Allowed unknown"
+    const allowed =
+      usage.allowed === true
+        ? "Allowed"
+        : usage.allowed === false
+          ? "Not allowed"
+          : "Allowed unknown"
     return usage.limitReached === true ? `${allowed} - limit reached` : allowed
   }
-  const WindowRow = (row: { label: string; window: WindowUsage }) => <QuotaRow
-    label={windowLabel(row.window, row.label)}
-    remainingPercent={row.window.remainingPercent}
-    resetAt={row.window.resetAt === null ? null : row.window.resetAt * 1000}
-    theme={props.theme}
-    requestRender={props.requestRender}
-  />
+  const WindowRow = (row: { label: string; window: WindowUsage }) => (
+    <QuotaRow
+      label={windowLabel(row.window, row.label)}
+      remainingPercent={row.window.remainingPercent}
+      resetAt={row.window.resetAt === null ? null : row.window.resetAt * 1000}
+      theme={props.theme}
+      requestRender={props.requestRender}
+    />
+  )
 
   return (
     <Section
@@ -52,11 +61,20 @@ export function CodexView(props: UsageViewProps<CodexUsage>) {
     >
       <Show when={!props.usage()!.error} fallback={<Empty theme={props.theme} />}>
         <PlanRow plan={props.usage()!.plan} theme={props.theme} />
-        <Show when={props.usage()!.primary ?? props.usage()!.secondary} fallback={<Empty theme={props.theme} />}>
-          <Show when={props.usage()!.primary}>{(window) => <WindowRow label="Primary" window={window()} />}</Show>
-          <Show when={props.usage()!.secondary}>{(window) => <WindowRow label="Secondary" window={window()} />}</Show>
+        <Show
+          when={props.usage()!.primary ?? props.usage()!.secondary}
+          fallback={<Empty theme={props.theme} />}
+        >
+          <Show when={props.usage()!.primary}>
+            {(window) => <WindowRow label="Primary" window={window()} />}
+          </Show>
+          <Show when={props.usage()!.secondary}>
+            {(window) => <WindowRow label="Secondary" window={window()} />}
+          </Show>
         </Show>
-        <Row theme={props.theme}>Status: <span style={{ fg: statusColor() }}>{statusText()}</span></Row>
+        <Row theme={props.theme}>
+          Status: <span style={{ fg: statusColor() }}>{statusText()}</span>
+        </Row>
       </Show>
     </Section>
   )

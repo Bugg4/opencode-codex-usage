@@ -20,15 +20,19 @@ export function GoView(props: UsageViewProps<GoUsage>) {
   const WindowRow = (row: { label: string; window: GoWindow }) => {
     const parsedReset = row.window.resetsAt === null ? Number.NaN : Date.parse(row.window.resetsAt)
     const resetAt = row.window.percent === 0 || Number.isNaN(parsedReset) ? null : parsedReset
-    return <QuotaRow
-      label={row.label}
-      remainingPercent={remaining(row.window.percent)}
-      resetAt={resetAt}
-      status={row.window.status !== "ok" ? row.window.status : null}
-      unavailable={row.window.status !== null && row.window.status !== "ok" && row.window.percent === null}
-      theme={props.theme}
-      requestRender={props.requestRender}
-    />
+    return (
+      <QuotaRow
+        label={row.label}
+        remainingPercent={remaining(row.window.percent)}
+        resetAt={resetAt}
+        status={row.window.status !== "ok" ? row.window.status : null}
+        unavailable={
+          row.window.status !== null && row.window.status !== "ok" && row.window.percent === null
+        }
+        theme={props.theme}
+        requestRender={props.requestRender}
+      />
+    )
   }
 
   return (
@@ -42,10 +46,19 @@ export function GoView(props: UsageViewProps<GoUsage>) {
       toggleOpen={props.toggleOpen}
     >
       <Show when={!props.usage()!.error} fallback={<Empty theme={props.theme} />}>
-        <Show when={props.usage()!.rolling ?? props.usage()!.weekly ?? props.usage()!.monthly} fallback={<Empty theme={props.theme} />}>
-          <Show when={props.usage()!.rolling}>{(window) => <WindowRow label="5h" window={window()} />}</Show>
-          <Show when={props.usage()!.weekly}>{(window) => <WindowRow label="1w" window={window()} />}</Show>
-          <Show when={props.usage()!.monthly}>{(window) => <WindowRow label="1mo" window={window()} />}</Show>
+        <Show
+          when={props.usage()!.rolling ?? props.usage()!.weekly ?? props.usage()!.monthly}
+          fallback={<Empty theme={props.theme} />}
+        >
+          <Show when={props.usage()!.rolling}>
+            {(window) => <WindowRow label="5h" window={window()} />}
+          </Show>
+          <Show when={props.usage()!.weekly}>
+            {(window) => <WindowRow label="1w" window={window()} />}
+          </Show>
+          <Show when={props.usage()!.monthly}>
+            {(window) => <WindowRow label="1mo" window={window()} />}
+          </Show>
         </Show>
       </Show>
     </Section>

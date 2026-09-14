@@ -1,4 +1,11 @@
-import { opencodeDataFile, booleanOrNull, numberOrNull, readJson, record, stringOrNull } from "../shared.js"
+import {
+  opencodeDataFile,
+  booleanOrNull,
+  numberOrNull,
+  readJson,
+  record,
+  stringOrNull,
+} from "../shared.js"
 
 export const USAGE_URL = "https://chatgpt.com/backend-api/wham/usage"
 
@@ -42,7 +49,7 @@ export const accountIdFromToken = (token: string): string | undefined => {
     if (nested) return nested
     const organizations = Array.isArray(claims.organizations) ? claims.organizations : []
     const organization = organizations.find((item) => record(item) && stringOrNull(item.id))
-    return record(organization) ? stringOrNull(organization.id) ?? undefined : undefined
+    return record(organization) ? (stringOrNull(organization.id) ?? undefined) : undefined
   } catch {
     return undefined
   }
@@ -76,7 +83,8 @@ const readAuth = async (): Promise<{ access?: string; accountId?: string }> => {
   if (environmentToken) {
     return {
       access: environmentToken,
-      accountId: stringOrNull(process.env.CHATGPT_ACCOUNT_ID) ?? accountIdFromToken(environmentToken),
+      accountId:
+        stringOrNull(process.env.CHATGPT_ACCOUNT_ID) ?? accountIdFromToken(environmentToken),
     }
   }
   const data: unknown = process.env.OPENCODE_AUTH_CONTENT
@@ -93,9 +101,15 @@ const readAuth = async (): Promise<{ access?: string; accountId?: string }> => {
 export const getCodexUsage = async (): Promise<CodexUsage> => {
   const auth = await readAuth()
   if (!auth.access) throw new Error("Connect ChatGPT from /connect first")
-  const headers = new Headers({ Authorization: `Bearer ${auth.access}`, Accept: "application/json" })
+  const headers = new Headers({
+    Authorization: `Bearer ${auth.access}`,
+    Accept: "application/json",
+  })
   if (auth.accountId) headers.set("ChatGPT-Account-ID", auth.accountId)
-  const response = await fetch(USAGE_URL, { headers, signal: AbortSignal.timeout(10_000) })
+  const response = await fetch(USAGE_URL, {
+    headers,
+    signal: AbortSignal.timeout(10_000),
+  })
   if (response.status === 401 || response.status === 403) {
     throw new Error("ChatGPT session expired; reconnect from /connect")
   }
