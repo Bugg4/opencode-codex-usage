@@ -11,6 +11,9 @@ message and the plugin makes no usage requests.
 
 ## OpenCode v1
 
+> Note: support for OpenCode v1 may be dropped at any moment following the
+> official stable release of OpenCode v2. Prefer the v2 setup for new installs.
+
 Requires OpenCode 1.18.29 or newer. Add the package and options to
 `~/.config/opencode/tui.json`:
 
