@@ -11,6 +11,19 @@ OpenCode sidebar plugin that displays subscription usage for:
 Providers are opt-in. If none are configured, the sidebar shows a short setup
 message and the plugin makes no usage requests.
 
+Install from npm as
+[`opencode-multi-usage`](https://www.npmjs.com/package/opencode-multi-usage):
+
+```sh
+# OpenCode v1
+opencode plugin opencode-multi-usage --global
+
+# OpenCode v2
+opencode2 plugin add opencode-multi-usage
+```
+
+Then enable providers as shown below.
+
 <br clear="both" />
 
 ## OpenCode v1
