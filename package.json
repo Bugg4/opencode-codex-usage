@@ -37,10 +37,8 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run clean && npm run build && node --test test/*.test.js",
-    "prepare": "npm run build"
+    "test": "npm run clean && tsc -p tsconfig.json && node --test test/*.test.js"
   },
   "engines": {
     "node": ">=22"
