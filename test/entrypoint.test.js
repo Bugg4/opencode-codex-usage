@@ -14,4 +14,9 @@ describe("plugin entrypoints", () => {
     assert.equal(tui.id, "opencode.multi-usage.tui")
     assert.equal(typeof tui.setup, "function")
   })
+
+  it("exposes the v1 TUI hook from ./tui", () => {
+    // The v1 loader only reads `default.tui`; keep this alongside `setup` for v2.
+    assert.equal(typeof tui.tui, "function")
+  })
 })

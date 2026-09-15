@@ -185,6 +185,9 @@ const plugin = {
       (render) => context.ui.slot({ append: "sidebar.content", render }),
     )
   },
-} satisfies V2Plugin.Definition
+  // V1 TUI hook. The v1 loader only reads `default.tui` and ignores `setup`,
+  // while v2 reads `setup` and ignores `tui`, so both can coexist here.
+  tui: legacyTui,
+} satisfies V2Plugin.Definition & { tui: typeof legacyTui }
 
 export default plugin

@@ -5,6 +5,7 @@ export declare const legacyTui: (api: TuiPluginApi, options?: unknown) => Promis
 declare const plugin: {
     id: string;
     setup(context: V2Plugin.Context): () => void;
+    tui: (api: TuiPluginApi, options?: unknown) => Promise<void>;
 };
 export default plugin;
 //# sourceMappingURL=tui.d.ts.map

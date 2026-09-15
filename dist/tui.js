@@ -144,7 +144,10 @@ const plugin = {
       append: "sidebar.content",
       render
     }));
-  }
+  },
+  // V1 TUI hook. The v1 loader only reads `default.tui` and ignores `setup`,
+  // while v2 reads `setup` and ignores `tui`, so both can coexist here.
+  tui: legacyTui
 };
 var tui_default = plugin;
 export {
