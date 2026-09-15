@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "opencode-multi-usage",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "OpenCode sidebar plugin for Codex, OpenCode Go, and CommandCode usage",
   "repository": {
     "type": "git",
